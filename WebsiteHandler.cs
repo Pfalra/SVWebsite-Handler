@@ -32,8 +32,8 @@ namespace SVWebsiteHandler
             PrintSeparator();
             PrintGreeting();
 
-            //InstallationChecker checker = new InstallationChecker();
-            //checker.checkSetup();
+            InstallationChecker checker = new InstallationChecker();
+            checker.CheckSetup();
 
             /* Encryptor has been moved to separate tool. Only the normal usecase is now handled. */
 

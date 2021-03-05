@@ -1,0 +1,1 @@
+﻿<GIT_URL>|https://api.github.com/repos/git-for-windows/git/releases/latest
