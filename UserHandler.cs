@@ -68,14 +68,20 @@ namespace SVWebsiteHandler
             {
                 Console.WriteLine();
                 Console.WriteLine("Bitte tragen Sie Ihren Vornamen ein: ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 string first_name = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine();
                 Console.WriteLine("Bitte tragen Sie Ihren Nachnamen ein: ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 string last_name = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.White;
                 saveStr = string.Format("{0},{1}", first_name, last_name);
                 Console.WriteLine("Der Name {0} wird nun hinterlegt", saveStr);
                 Console.WriteLine("Ist der Name richtig? (J/N)");
+                Console.ForegroundColor = ConsoleColor.Green;
                 string input = Console.ReadLine();
+                Console.ForegroundColor = ConsoleColor.White;
 
                 if (input.StartsWith('J') || input.StartsWith('j'))
                 {

@@ -4,42 +4,103 @@ using System.Net;
 using System.IO;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Security.Principal;
+using System.Security.Permissions;
+
+
 
 namespace SVWebsiteHandler
 {
     class ToolInstaller
     {
         private const string relPathToLinks = "./ToolLinks.txt";
+
         private const string gitKey = "<GIT_URL>";
+        private const string mobiKey = "<MOBIRISE_URL>";
+
         private const string downloadFolderName = "WebsiteHandler_Tools";
+
+        private const string mobiInstallerName = "MobiriseInstaller.exe";
+
         private const string gitFileName = "GitInstaller.exe";
+        private const string gitInfName = "gitconfig.inf";
 
         public ToolInstaller() { }
 
-        public bool InstallGit()
+        /* Mobirise things */
+        public bool InstallMobirise()
         {
-            Console.WriteLine("Darf die Versionsverwaltungssoftware \'Git\' installiert werden. Bitte bestätigen Sie mit \'J\' oder lehnen Sie mit \'N\' ab.");
+            bool permission = AskForPermission("Website-Erstellungssoftware \'Mobirise\'");
 
-            while (true)
+            if (!permission)
             {
-                string input = Console.ReadLine();
+                return false;
+            }
 
-                if (input.StartsWith('j') || input.StartsWith('J'))
+            Dictionary<string, string> toolLinks = ReadToolLinks();
+
+            if (toolLinks.Equals(null))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Es wurde eine leere Tool-Liste gefunden. Installation fehlgeschlagen!");
+                Console.ForegroundColor = ConsoleColor.White;
+                return false;
+            }
+
+            if (toolLinks.ContainsKey(mobiKey))
+            {
+                bool success = toolLinks.TryGetValue(mobiKey, out string mobiUrl);
+                if (success && (mobiUrl != null) && (mobiUrl != ""))
                 {
-                    break;
-                }
-                else if (input.StartsWith('n') || input.StartsWith('N'))
-                {
-                    Console.WriteLine("Sie haben die Installation abgebrochen.");
-                    return false;
-                }
-                else
-                {
-                    Console.WriteLine("Ungültige Eingabe. Bitte versuchen Sie es erneut.");
+                    WebClient downloader = new WebClient();
+                    downloader.Headers.Add("User-Agent: Other");
+                    string downloadPath = String.Format("C:\\Users\\{0}\\Downloads\\{1}", Environment.UserName, downloadFolderName);
+
+                    if (!Directory.Exists(downloadPath))
+                    {
+                        Directory.CreateDirectory(downloadPath);
+                    }
+
+                    try
+                    {
+                        Console.WriteLine("Das Tool wird jetzt heruntergeladen. Dies kann einen Moment dauern.");
+                        downloader.DownloadFile(mobiUrl, String.Concat(downloadPath, "\\", mobiInstallerName));
+                        Console.WriteLine("Der Download war erfolgreich und wurde im Downloads-Ordner abgelegt.");
+                    }
+                    catch (WebException we)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Fehler beim Download des Installers.\r\n");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        we.ToString();
+                        return false;
+                    }
+
+                    /* Invoke installation procedure */
+                    bool installSuccess = InvokeToolInstaller(downloadPath + "\\" + mobiInstallerName);
+
+                    if (installSuccess)
+                    {
+                        return true;
+                    } 
                 }
             }
 
-            Dictionary<string, string> urlList = readToolLinks();
+            return false;
+        }
+
+
+        /* Git things */
+        public bool InstallGit()
+        {
+            bool permission = AskForPermission("Versionsverwaltungssoftware \'Git\'");
+
+            if (!permission)
+            {
+                return false;
+            }
+
+            Dictionary<string, string> urlList = ReadToolLinks();
 
             if (urlList.Equals(null))
             {
@@ -61,44 +122,52 @@ namespace SVWebsiteHandler
 
                     WebClient webClient = new WebClient();
                     webClient.Headers.Add("User-Agent: Other");
-                    string savePath = String.Format("C:\\Users\\{0}\\Downloads\\{1}", Environment.UserName, downloadFolderName);
+                    string downloadPath = String.Format("C:\\Users\\{0}\\Downloads\\{1}", Environment.UserName, downloadFolderName);
 
-                    if (!Directory.Exists(savePath))
+                    if (!Directory.Exists(downloadPath))
                     {
-                        Directory.CreateDirectory(savePath);
+                        Directory.CreateDirectory(downloadPath);
                     }
 
                     try
                     {
                         Console.WriteLine("Das Tool wird jetzt heruntergerladen. Dies kann einen Moment dauern.");
-                        webClient.DownloadFile(downloadUrl, String.Concat(savePath, "\\", gitFileName));
+                        webClient.DownloadFile(downloadUrl, String.Concat(downloadPath, "\\", gitFileName));
                         Console.WriteLine("Der Download war erfolgreich und wurde im Downloads-Ordner abgelegt.");
                     }
                     catch (WebException we)
                     {
-                        Console.WriteLine("Fehler beim Download des Git Installers.");
+                        Console.WriteLine("Fehler beim Download des Installers.");
                         we.ToString();
                         return false;
                     }
 
 
                     /* Invoke installation procedure */
-                    InvokeToolInstaller(String.Concat(savePath, "\\", gitFileName), "");
+                    string execPath = System.Reflection.Assembly.GetExecutingAssembly().Location; // Get the path of the current executable
+                    string execDirectory = System.IO.Path.GetDirectoryName(execPath);
+                    string gitInfPath = execDirectory + "\\" + gitInfName;
+
+
+                    bool installSuccess = InvokeToolInstaller(
+                        String.Concat(downloadPath, "\\", gitFileName), 
+                        String.Format("/SP- /VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /LOADINF={0}", gitInfPath)
+                        );
+
+                    if (installSuccess)
+                    {
+                        File.Delete(String.Concat(downloadPath, "\\", gitFileName)); // CLEAN-UP: Remove the installer
+                        Directory.Delete(downloadPath);
+                        return true;
+                    }
                 }
             }
+            else
+            {
+                Console.WriteLine("Es wurde kein Link zum Download von Git gefunden.");
+                return false;
+            }
 
-            return true;
-        }
-
-        private bool InvokeToolInstaller(string pathToExe, string parameters)
-        {
-            Console.WriteLine("Es wird nun versucht die Installation durchzuführen.");
-            Process installer = new Process();
-            installer.StartInfo.FileName = pathToExe;
-            installer.StartInfo.Arguments = "" + parameters;
-            installer.Start();
-            /* Process start successfull, now try with parameters */
-            /* READ CONSOLE WHILE EXECUTING */
             return true;
         }
 
@@ -164,7 +233,6 @@ namespace SVWebsiteHandler
             return null;
         }
 
-
         private string GetGitInstallExe(List<string> urls)
         {
             foreach (string s in urls) {
@@ -180,7 +248,66 @@ namespace SVWebsiteHandler
         }
 
 
-        private Dictionary<string, string> readToolLinks()
+        private bool InvokeToolInstaller(string pathToExe, string parameters)
+        {
+            Console.WriteLine("Es wird nun versucht die Installation durchzuführen.");
+            Process installer = new Process();
+            installer.StartInfo.FileName = pathToExe;
+            installer.StartInfo.Arguments = parameters;
+            installer.StartInfo.RedirectStandardOutput = true;
+            installer.StartInfo.RedirectStandardError = true;
+
+            installer.Start();
+
+            using StreamReader outReader = installer.StandardOutput;
+            using StreamReader errReader = installer.StandardError;
+            string stdoutput = outReader.ReadToEnd();
+            string erroutput = errReader.ReadToEnd();
+
+
+            Console.WriteLine("\r\n---------- Ausgaben des Installers ----------");
+
+            Console.WriteLine("----> Standardausgabe: ");
+            Console.WriteLine(stdoutput);
+
+            Console.WriteLine("----> Fehlerausgabe: ");
+            Console.WriteLine(erroutput);
+
+            Console.WriteLine("---------------------------------------------\r\n");
+            installer.WaitForExit();
+            return true;
+        }
+        
+        private bool InvokeToolInstaller(string pathToExe)
+        {
+            Console.WriteLine("Es wird nun versucht die Installation durchzuführen.");
+            Process installer = new Process();
+            installer.StartInfo.FileName = pathToExe;
+            installer.StartInfo.RedirectStandardOutput = true;
+            installer.StartInfo.RedirectStandardError = true;
+
+            installer.Start();
+
+            using StreamReader outReader = installer.StandardOutput;
+            using StreamReader errReader = installer.StandardError;
+            string stdoutput = outReader.ReadToEnd();
+            string erroutput = errReader.ReadToEnd();
+
+
+            Console.WriteLine("\r\n---------- Ausgaben des Installers ----------");
+
+            Console.WriteLine("----> Standardausgabe: ");
+            Console.WriteLine(stdoutput);
+
+            Console.WriteLine("----> Fehlerausgabe: ");
+            Console.WriteLine(erroutput);
+
+            Console.WriteLine("---------------------------------------------\r\n");
+            installer.WaitForExit();
+            return true;
+        }
+
+        private Dictionary<string, string> ReadToolLinks()
         {
             try
             {
@@ -202,6 +329,40 @@ namespace SVWebsiteHandler
                 Console.WriteLine(e.ToString());
             }
             return null;
+        }
+    
+        private bool AskForPermission(string softwareName)
+        {
+
+            Console.WriteLine(String.Format("Darf die {0} installiert werden. Bitte bestätigen Sie mit \'J\' oder lehnen Sie mit \'N\' ab.", softwareName));
+            while (true)
+            {
+                string input = Console.ReadLine();
+
+                if (input.StartsWith('j') || input.StartsWith('J'))
+                {
+                    break;
+                }
+                else if (input.StartsWith('n') || input.StartsWith('N'))
+                {
+                    Console.WriteLine("Sie haben die Installation abgebrochen.");
+                    return false;
+                }
+                else
+                {
+                    Console.WriteLine("Ungültige Eingabe. Bitte versuchen Sie es erneut.");
+                }
+            }
+            return true;
+        }
+
+
+        public void CleanUp()
+        {
+            if (Directory.Exists(downloadFolderName))
+            {
+                Directory.Delete(downloadFolderName);
+            }
         }
     }
 }
