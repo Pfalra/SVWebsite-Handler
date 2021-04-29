@@ -1,0 +1,41 @@
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\WebsiteHandler V2.exe.config
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\WebsiteHandler V2.exe
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\WebsiteHandler V2.pdb
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\MainWindow.g.cs
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\App.g.cs
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2_MarkupCompile.cache
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2_MarkupCompile.lref
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\MainWindow.baml
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2.g.resources
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler_V2.Properties.Resources.resources
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler_GUI.csproj.GenerateResource.cache
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler_GUI.csproj.CoreCompileInputs.cache
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2.exe
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2.pdb
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler_GUI.csprojAssemblyReference.cache
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler V2_Content.g.cs
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Raphael\source\repos\WebsiteHandler V2\obj\Debug\WebsiteHandler_GUI.csproj.CopyComplete
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\BetterFolderBrowser.dll
+C:\Users\Raphael\source\repos\WebsiteHandler V2\bin\Debug\BetterFolderBrowser.xml
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\WebsiteHandler V2.exe.config
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\WebsiteHandler V2.exe
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\WebsiteHandler V2.pdb
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\Newtonsoft.Json.dll
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\Newtonsoft.Json.xml
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler_GUI.csprojAssemblyReference.cache
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\MainWindow.g.cs
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\App.g.cs
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler V2_Content.g.cs
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler V2_MarkupCompile.cache
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\MainWindow.baml
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler V2.g.resources
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler_V2.Properties.Resources.resources
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler_GUI.csproj.GenerateResource.cache
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler_GUI.csproj.CoreCompileInputs.cache
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler_GUI.csproj.CopyComplete
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler V2.exe
+D:\005_Schützenverein\WebsiteHandler\obj\Debug\WebsiteHandler V2.pdb
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\CommandLine.dll
+D:\005_Schützenverein\WebsiteHandler\bin\Debug\CommandLine.xml
