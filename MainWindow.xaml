@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        
         mc:Ignorable="d"
         Title="WebsiteHandler" Height="463.5" Width="735" ResizeMode="CanMinimize" BorderBrush="#FF111111" Foreground="White" FontFamily="Calibri" Background="Black">
     <Grid Background="Black" Opacity="0.8">
@@ -102,10 +101,8 @@
             </Canvas>
             <Canvas x:Name="BackupCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="BackupCanvas" Visibility="Hidden" Margin="0,5,0,0">
                 <Label Content="Sicherungsordner:" Canvas.Left="10" Canvas.Top="10" Foreground="White" Width="213"/>
-                <TextBox x:Name="PathTextBox" Height="23" Canvas.Left="10" TextWrapping="Wrap" Text="Pfad" Canvas.Top="35" Width="445" BorderBrush="{x:Null}" Background="#FF424242" CaretBrush="#FF00FF23" SelectionBrush="#FF00D714" Foreground="White"/>
-                <Button x:Name="BrowseButton" Content="..." Canvas.Left="460" Canvas.Top="35" Width="37" FontSize="16" Height="23" HorizontalAlignment="Center" Background="White" BorderBrush="{x:Null}" Click="BrowseButton_Click"/>
-                <Button x:Name="StartBackupButton" Content="Sicherung starten" Height="25" Canvas.Left="10" Canvas.Top="63" Width="100" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="StartBackupButton_Click"/>
-                <Label x:Name="BackupStatusLabel" Content="Status:" Canvas.Left="10" Canvas.Top="94" Foreground="White" Width="445"/>
+                <Button x:Name="StartBackupButton" Content="Sicherung starten" Height="25" Canvas.Left="10" Canvas.Top="65" Width="100" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="StartBackupButton_Click"/>
+                <Label x:Name="BackupStatusLabel" Content="Status:" Canvas.Left="10" Canvas.Top="35" Foreground="White" Width="445"/>
 
             </Canvas>
             <Canvas x:Name="UserConfigCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="UserConfigCanvas" Visibility="Hidden" Margin="0,5,0,0">
@@ -113,7 +110,15 @@
                 <TextBox x:Name="FirstNameBox" Height="23" Canvas.Left="10" TextWrapping="Wrap" Text="" Canvas.Top="35" Width="100" BorderBrush="{x:Null}" Background="#FF424242" CaretBrush="#FF00FF23" SelectionBrush="#FF00D714" Foreground="White"/>
                 <Label Content="Nachname:" Canvas.Left="115" Canvas.Top="10" Foreground="White" Width="100"/>
                 <TextBox x:Name="LastNameBox" Height="23" Canvas.Left="115" TextWrapping="Wrap" Text="" Canvas.Top="35" Width="100" BorderBrush="{x:Null}" Background="#FF424242" CaretBrush="#FF00FF23" SelectionBrush="#FF00D714" Foreground="White"/>
-                <Button x:Name="SubmitConfigButton" Content="Übernehmen" Height="25" Canvas.Left="10" Canvas.Top="63" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" AutomationProperties.Name="SubmitConfigButton" Click="SubmitConfigButton_Click"/>
+                <Button x:Name="SubmitConfigButton" Content="Übernehmen" Height="25" Canvas.Left="12" Canvas.Top="175" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" AutomationProperties.Name="SubmitConfigButton" Click="SubmitConfigButton_Click"/>
+                <Label Content="User-Key Datei:" Canvas.Left="12" Canvas.Top="63" Foreground="White" Width="203"/>
+                <TextBox x:Name="UserKeyTextBox" HorizontalAlignment="Left" Height="23" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="340" Background="#FF424242" Foreground="White" CaretBrush="#FF00FF0C" BorderBrush="#FF383838" SelectionBrush="#FF595959" Grid.Column="2" Canvas.Left="12" Canvas.Top="88" />
+                <Button x:Name="UserKey_BrowseButton" Content="..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="41" Background="White" Click="UserKey_BrowseButton_Click" BorderBrush="White" FontWeight="Bold" Height="23" Grid.Column="2" Canvas.Left="357" Canvas.Top="88"/>
+
+                <TextBox x:Name="BackupPathTextBox" TextWrapping="Wrap" Text="" BorderBrush="{x:Null}" Background="#FF424242" CaretBrush="#FF00FF23" SelectionBrush="#FF00D714" Foreground="White" Grid.Column="2" Canvas.Left="11" Canvas.Top="145" Width="341" Height="23"/>
+                <Button x:Name="BrowseButton" Content="..." Width="41" FontSize="16" HorizontalAlignment="Center" Background="White" BorderBrush="{x:Null}" Click="BackupBrowseButton_Click" Grid.Column="2" Canvas.Left="357" Canvas.Top="145" Height="23"/>
+                <Label Content="Pfad zum Sicherungsordner:" Canvas.Left="10" Canvas.Top="115" Foreground="White" Width="205"/>
+
             </Canvas>
             <Canvas x:Name="GetCurrentProjectCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="GetCurrentProjectCanvas" Visibility="Hidden" Margin="0,5,0,0">
                 <Label Content="Lokaler Stand:" Canvas.Left="10" Canvas.Top="10" Foreground="White" Width="298"/>
@@ -131,7 +136,7 @@
                 <Label x:Name="LocalVersionLabel" Content="dd.mm.yyyy" Canvas.Left="179" Canvas.Top="10" Foreground="White" Width="287"/>
                 <Label x:Name="PublicVersionLabel" Content="dd.mm.yyyy" Canvas.Left="179" Canvas.Top="33" Foreground="White" Width="287"/>
             </Canvas>
-            <Canvas x:Name="ListFtpFilesCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="ListFtpFilesCanvas" Visibility="Visible" Margin="0,5,0,0">
+            <Canvas x:Name="ListFtpFilesCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="ListFtpFilesCanvas" Visibility="Hidden" Margin="0,5,0,0">
                 <ScrollViewer Height="168" Canvas.Top="5" Width="517">
                     <TreeView Height="134" Width="381" Foreground="{x:Null}" Background="{x:Null}" BorderBrush="{x:Null}">
                         <TreeViewItem Header="FTPServer" Height="41" Width="282" IsExpanded="True" Foreground="White">
@@ -150,7 +155,7 @@
             </Canvas>
         </Canvas>
         <ScrollViewer Grid.Column="2" HorizontalAlignment="Left" Height="186" Margin="0,249,0,0" VerticalAlignment="Top" Width="507">
-            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsoleausgabe:" Margin="10,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock"/>
+            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsolenausgabe:" Margin="10,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock"/>
         </ScrollViewer>
     </Grid>
 </Window>

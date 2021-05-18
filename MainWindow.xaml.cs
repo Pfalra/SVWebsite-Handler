@@ -1,20 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Forms;
 using WebsiteHandlerBackend;
-using System.Windows.Threading;
-using WK.Libraries.BetterFolderBrowserNS;
+//using WK.Libraries.BetterFolderBrowserNS;
 
 namespace WebsiteHandler_GUI
 {
@@ -22,15 +12,12 @@ namespace WebsiteHandler_GUI
     {
         private ConsoleTextBlockConnector ConsoleConnector;
         private string GuiVersion { get; } = "1.0.0";
-        private string BackendVersion { get; set; }
+        private string BackendVersion { get; set; } = "1.0.0";
         private WebsiteHandler HandlerBackend { get; set; }
 
         private Canvas ActiveCanvas;
         private string GitVersion { get; set; } = "Nicht installiert";
         private string MobiriseVersion { get; set; } = "Nicht installiert";
-        private string UserConfig { get; set; } = "Nicht gesetzt";
-
-        private string WebsiteWorkspace { get; set; } = "";
 
 
         public MainWindow() 
@@ -96,23 +83,89 @@ namespace WebsiteHandler_GUI
             ActiveCanvas = c;
         }
 
+
         /************************/
         /* Buttons within cards */
         /************************/
 
+        // UserConfig Canvas
         private void SubmitConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            string namestr = FirstNameBox.Text + " " + LastNameBox.Text;
-            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKey, namestr);
-            ConsoleOutputTextBlock.Text += "\r\n--> Userkonfiguration übernommen: " + namestr;
-            UserConfig = namestr; 
-            UserConfigTextBlock.Text = "Nutzerkonfiguration: " + UserConfig;
+            if (FirstNameBox.Text.Trim() == "" || LastNameBox.Text.Trim() == "")
+            {
+                AppendLineToConsole("Bitte geben Sie einen gültigen Namen ein.");
+            }
 
-            /* Use Init as update method */
-            //InitializeHomeCanvas();
-            //InitializeUserConfigCanvas();
+            if (!Path.IsPathRooted(UserKeyTextBox.Text))
+            {
+                AppendLineToConsole("Wählen Sie eine gültige User-Key Datei aus.");
+            }
+
+            if (!Path.IsPathRooted(BackupPathTextBox.Text))
+            {
+                AppendLineToConsole("Wählen Sie ein gültiges Backup-Verzeichnis aus.");
+            }
+
+            if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
+            {
+                AppendLineToConsole("Wählen Sie ein gültiges Arbeitsverzeichnis aus.");
+            }
+
+
+            /* Read from TextBoxes */
+            HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
+            HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
+            HandlerBackend.UHandler.BackupSpacePath = BackupPathTextBox.Text;
+
+            /* Update on other Canvases */
+            UserConfigTextBlock.Text = "Nutzerkonfiguration: " + HandlerBackend.UHandler.UserName;
+
+            /* Edit the Config-File */
+            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKey, HandlerBackend.UHandler.UserName);
+            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKeyPathKey, HandlerBackend.UHandler.UserKeyPath);
+            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.BackupSpaceKey, HandlerBackend.UHandler.BackupSpacePath);
+
+            /* Output on console */
+            AppendLineToConsole("--> Userkonfiguration übernommen: " + HandlerBackend.UHandler.UserName);
+            AppendLineToConsole("User-Key Pfad: " + HandlerBackend.UHandler.UserKeyPath);
+            AppendLineToConsole("Backup Pfad: " + HandlerBackend.UHandler.BackupSpacePath);
+            AppendLineToConsole("Arbeitsbereich: " + HandlerBackend.UHandler.WorkspacePath);
+            AppendLineToConsole();
         }
 
+        private void UserKey_BrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog
+            {
+                Title = "Auswahl der User-Key Datei",
+                InitialDirectory = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName),
+                Multiselect = false,
+                ShowHelp = false,
+                Filter = "User-Key Dateien (*.cryp)|*.cryp",
+                CheckFileExists = true,
+                CheckPathExists = true
+            };
+            fileDialog.ShowDialog();
+            UserKeyTextBox.Text = fileDialog.FileName;
+        }
+        
+        private void BackupBrowseButton_Click(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            dialog.ShowNewFolderButton = true;
+            dialog.Description = "Auswahl des Sicherungsordners";
+            dialog.ShowDialog();
+
+            if (dialog.SelectedPath != "")
+            {
+                BackupPathTextBox.Text = dialog.SelectedPath;
+                HandlerBackend.UHandler.BackupSpacePath = dialog.SelectedPath;
+                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.BackupSpaceKey, dialog.SelectedPath);
+
+            }
+        }
+
+        // ToolInstall Canvas
         private void GitInstallMenuItem_Click(object sender, RoutedEventArgs e)
         {
             HandlerBackend.Installer.InstallGit();
@@ -123,45 +176,41 @@ namespace WebsiteHandler_GUI
             HandlerBackend.Installer.InstallMobirise();
         }
 
-        private void BrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            BetterFolderBrowser browser = new BetterFolderBrowser();
-            browser.Multiselect = false;
-            browser.RootFolder = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
-            browser.Title = "Ordner zur Sicherung";
-            browser.ShowDialog();
-            PathTextBox.Text = browser.SelectedPath;
-        }
-
+        // Home Canvas 
         private void WorkspaceBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            BetterFolderBrowser browser = new BetterFolderBrowser();
-            browser.Multiselect = false;
-            browser.RootFolder = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
-            browser.Title = "Auswahl des Arbeitsbereichs";
-            browser.ShowDialog();
-            
-            if (browser.SelectedPath != "")
+            FolderBrowserDialog dialog = new FolderBrowserDialog
             {
-                WorkspaceTextBox.Text = browser.SelectedPath;
-                WebsiteWorkspace = browser.SelectedPath;
-                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.WorkspaceKey, browser.SelectedPath);
+                ShowNewFolderButton = true,
+                Description = "Auswahl des Arbeitsbereichs"
+            };
+            dialog.ShowDialog();
+            
+            if (dialog.SelectedPath != "")
+            {
+                WorkspaceTextBox.Text = dialog.SelectedPath;
+                HandlerBackend.UHandler.WorkspacePath = dialog.SelectedPath;
+                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.WorkspaceKey, dialog.SelectedPath);
             }
-
         }
 
+        // Backup Canvas
         private void StartBackupButton_Click(object sender, RoutedEventArgs e)
         {
             /* TODO: IMPLEMENT FTP DOWNLOAD */
+            // Retrieve User-Key from File
+
+            // Decrypt Server Credentials
+
         }
 
+        // Show FTP Files Canvas
         private void RefreshFtpList_Click(object sender, RoutedEventArgs e)
         {
             /* TODO: IMPLEMENT FTP PEEK */
         }
 
-
-
+        // Publish Canvas
         private void ChangesTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             // Set Button active
@@ -206,21 +255,31 @@ namespace WebsiteHandler_GUI
             WebsiteHandlerGuiVersionTextBlock.Text = "GUI-Version: " + GuiVersion;
             WebsiteHandlerVersionTextBlock.Text = "WebsiteHandler-Version: " + HandlerBackend.Version;
 
-            if (HandlerBackend.UHandler.IsUsernameSet())
-            {
-                UserConfig = HandlerBackend.UHandler.GetFromConfig("USER");
-            }
-
-            UserConfigTextBlock.Text = "Nutzerkonfiguration: " + UserConfig;
-
             GitVersion = HandlerBackend.InstChecker.GetGitVersion();
             GitVersionTextBlock.Text = "Git-Version: " + GitVersion;
 
             MobiriseVersion = HandlerBackend.InstChecker.GetMobiriseVersion();
             MobiriseVersionTextBlock.Text = "Mobirise-Version: " + MobiriseVersion;
 
-            WebsiteWorkspace = HandlerBackend.UHandler.GetFromConfig("WORKSPACE");
-            WorkspaceTextBox.Text = WebsiteWorkspace;
+
+            string tmpUsername = HandlerBackend.UHandler.UserName;
+            if (HandlerBackend.UHandler.IsConfigExistent())
+            {
+                if (HandlerBackend.UHandler.IsUsernameSet())
+                {
+                    HandlerBackend.UHandler.UserName = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.UserKey);
+                    UserConfigTextBlock.Text = "Nutzerkonfiguration: " + HandlerBackend.UHandler.UserName;
+
+                    HandlerBackend.UHandler.WorkspacePath = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.WorkspaceKey);
+                    WorkspaceTextBox.Text = HandlerBackend.UHandler.WorkspacePath;
+                }
+            }
+            else
+            {
+                ConsoleOutputTextBlock.Text += "\r\nEs konnte keine Nutzerkonfiguration gefunden werden\r\nBitte erstellen Sie eine.";
+                UserConfigTextBlock.Text = "Nutzerkonfiguration: Nicht gesetzt";
+            }
+
         }
 
         private void InitializeToolInstallCanvas()
@@ -246,21 +305,48 @@ namespace WebsiteHandler_GUI
     
         private void InitializeUserConfigCanvas()
         {
-            if (UserConfig.Contains(" "))
+            if (HandlerBackend.UHandler.UserName.Contains(" "))
             {
-                string firstName = UserConfig.Substring(0, UserConfig.LastIndexOf(" "));
-                string lastName = UserConfig.Substring(UserConfig.LastIndexOf(" ") + 1);
+                string firstName = HandlerBackend.UHandler.UserName.Substring(0, HandlerBackend.UHandler.UserName.LastIndexOf(" "));
+                string lastName = HandlerBackend.UHandler.UserName.Substring(HandlerBackend.UHandler.UserName.LastIndexOf(" ") + 1);
                 FirstNameBox.Text = firstName;
                 LastNameBox.Text = lastName;
+            } else
+            {
+                FirstNameBox.Text = HandlerBackend.UHandler.UserName;
+            }
+
+            if (HandlerBackend.UHandler.IsConfigExistent())
+            {
+                HandlerBackend.UHandler.UserKeyPath = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.UserKeyPathKey);
+                HandlerBackend.UHandler.BackupSpacePath = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.BackupSpaceKey);
+
+                UserKeyTextBox.Text = HandlerBackend.UHandler.UserKeyPath;
+                BackupPathTextBox.Text = HandlerBackend.UHandler.BackupSpacePath;
             }
         }
 
         private void InitializeBackupCanvas()
         {
             BackupStatusLabel.Content = "Status: Nutzen Sie den Button um die Sicherung am angegebenen Pfad abzulegen.";
-            PathTextBox.Text = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
+            BackupPathTextBox.Text = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
         }
 
-       
+
+        /* OTHERS */
+        private void AppendLineToConsole()
+        {
+            ConsoleOutputTextBlock.Text += "\r\n";
+        }
+
+        private void AppendLineToConsole(string s)
+        {
+            ConsoleOutputTextBlock.Text += "\r\n" + s;
+        }
+
+        private void AppendToConsole(string s)
+        {
+            ConsoleOutputTextBlock.Text += s;
+        }
     }
 }

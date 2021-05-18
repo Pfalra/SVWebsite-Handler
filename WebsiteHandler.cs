@@ -30,7 +30,7 @@ namespace WebsiteHandlerBackend
             ServerName = UHandler.GetFromConfig("SERVER-NAME");
 
             /* During Debugging use clear text credentials */
-            FtpHandler = new FTPHandler(Connector, ServerName, Decrypt);
+            //FtpHandler = new FTPHandler(Connector, ServerName, Decrypt);
             
             Logger = new HandlerLogger();
         }

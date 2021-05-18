@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-
+﻿using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace WebsiteHandlerBackend
 {
@@ -30,6 +24,15 @@ namespace WebsiteHandlerBackend
         public void ClearConsole()
         {
             TxtBlock.Text = "";
+        }
+
+        public void WriteErrorLine(string s)
+        {
+            Brush tmp = TxtBlock.Foreground;
+            TxtBlock.Foreground = new SolidColorBrush(Colors.Red);
+            WriteLine(s);
+            TxtBlock.Foreground = tmp;
+
         }
     }
 }

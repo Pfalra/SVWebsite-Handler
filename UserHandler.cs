@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 namespace WebsiteHandlerBackend
 {
@@ -8,7 +8,13 @@ namespace WebsiteHandlerBackend
     {
         public string UserKey { get; } = "USER";
         public string WorkspaceKey { get; } = "WORKSPACE";
+        public string BackupSpaceKey { get; } = "BACKUP";
+        public string UserKeyPathKey { get; } = "USERKEYPATH";
 
+        public string UserName { get; set; } = "";
+        public string WorkspacePath { get; set; } = "";
+        public string BackupSpacePath { get; set; } = "";
+        public string UserKeyPath { get; set; } = "";
 
         private const string separator = "!";
         private const string foldername = "WebsiteHandler";
@@ -24,6 +30,8 @@ namespace WebsiteHandlerBackend
             Connector = c;
             KeyList.Add(UserKey);
             KeyList.Add(WorkspaceKey);
+            KeyList.Add(BackupSpaceKey);
+            KeyList.Add(UserKeyPathKey);
         }
 
 
@@ -51,8 +59,19 @@ namespace WebsiteHandlerBackend
                 Connector.WriteLine("Nutzerkonfiguration wurde noch nicht durchgeführt.");
                 return false;
             }
-            Connector.WriteLine();
-            Connector.WriteLine("Nutzername ist gesetzt: " + GetFromConfig("USER"));
+
+            string username = GetFromConfig(UserKey);
+
+            if (username.Trim() == "")
+            {
+                Connector.WriteLine();
+                Connector.WriteErrorLine("Ein leerer Nutzername wurde gesetzt. Bitte ändern Sie die Konfiguration!");
+            }
+            else
+            {
+                Connector.WriteLine();
+                Connector.WriteLine("Valider Nutzername ist gesetzt: " + username);
+            }
 
             return true;
         }
@@ -71,18 +90,33 @@ namespace WebsiteHandlerBackend
         public string GetFromConfig(string key)
         {
             Dictionary<string, string> map = ReadConfig();
-            string retVal;
-            if (map.TryGetValue(key, out retVal))
+
+            if (map == null)
+            {
+                return "";
+            }
+
+            if (map.TryGetValue(key, out string retVal))
             {
                 return retVal;
             }
 
-            return "Wert nicht gesetzt";
+            return "";
+        }
+
+
+        public bool IsConfigExistent()
+        {
+            Dictionary<string, string> map = ReadConfig();
+            if (map == null)
+            {
+                return false;
+            }
+            return true;
         }
 
         public void EditConfig(string key, string value)
         {
-
             Dictionary<string, string> map = ReadConfig();
 
             if (map == null)
@@ -105,7 +139,7 @@ namespace WebsiteHandlerBackend
                 foreach (KeyValuePair<string, string> kvp in map)
                 {
                     string tmp = "";
-                    if (key.Contains(kvp.Key))
+                    if (key.CompareTo(kvp.Key) == 0)
                     {
                         tmp = kvp.Key + separator + value;
                     } 
