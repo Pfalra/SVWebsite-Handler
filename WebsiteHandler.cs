@@ -5,16 +5,25 @@ namespace WebsiteHandlerBackend
 {
     class WebsiteHandler
     {
-        public string ServerName { get; set; }
+        private string handlerKey = "HANDLER";
+        private string websiteKey = "WEBSITE";
 
-        public string Version{ get; } = "1.0.0";
+        public string Version { get; } = "1.0.0";
+        public string DefaultServerCredsPath { get; } = ".\\sc.enc";
+        public string DefaultEncryptorFile { get; } = ".\\Encryptor.exe";
+        public string WebsiteRepoLink { get; set; } = "";
+        public string HandlerRepoLink { get; set; } = "";
+
+        public string ServerName { get; set; } = "";
+
         public UserHandler UHandler { get; }
         public InstallationChecker InstChecker { get; }
         public ToolInstaller Installer { get; }
 
         public FTPHandler FtpHandler { get; }
+        public GITHandler GitHandler { get; }
         
-        public Decryptor Decrypt { get; set; }
+        public Decryptor CredDecryptor { get; set; }
         public HandlerLogger Logger { get; }
 
         public ConsoleTextBlockConnector Connector { get; set; }
@@ -26,17 +35,61 @@ namespace WebsiteHandlerBackend
             InstChecker = new InstallationChecker(Connector);
             Installer = new ToolInstaller(Connector);
 
-            /* Read in configuration */
-            ServerName = UHandler.GetFromConfig("SERVER-NAME");
+            if (UHandler.IsConfigExistent())
+            {
+                string userKeyPath = UHandler.GetFromConfig(UHandler.UserKeyPathKey);
 
-            /* During Debugging use clear text credentials */
+                if (userKeyPath == null || userKeyPath == "")
+                {
+                    Connector.WriteErrorLine(">> Es wurden noch nicht genügend Informationen angegeben, um die Anmeldedaten für den Server zu entschlüsseln!");
+                } else
+                {
+                    CredDecryptor = new Decryptor(DefaultServerCredsPath, userKeyPath, DefaultEncryptorFile);
+                }
+
+            }
+
+
+            /* Read in configuration */
+            //ServerName = UHandler.GetFromConfig("SERVER-NAME");
+
             //FtpHandler = new FTPHandler(Connector, ServerName, Decrypt);
             
             Logger = new HandlerLogger();
+
+
+            ReadRepositoryLinks();
         }
 
 
         
+        public void AssignDecryptor(Decryptor dec)
+        {
+            CredDecryptor = dec;
+        }
 
+        private void ReadRepositoryLinks()
+        {
+            FileInfo fi = new FileInfo(".\\repos");
+            FileStream fs = fi.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+
+            StreamReader sr = new StreamReader(fs);
+
+            while (!sr.EndOfStream)
+            {
+                string line = sr.ReadLine();
+                string[] kvp = line.Split('!');
+                
+                if (kvp[0].CompareTo(handlerKey) == 0)
+                {
+                    HandlerRepoLink = kvp[1];
+                }
+
+                if (kvp[0].CompareTo(websiteKey) == 0)
+                {
+                    WebsiteRepoLink = kvp[1];
+                }
+            }
+        }
     }
 }

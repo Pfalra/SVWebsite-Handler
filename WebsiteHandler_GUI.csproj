@@ -95,6 +95,7 @@
     </ApplicationDefinition>
     <Compile Include="Decryptor.cs" />
     <Compile Include="FTPHandler.cs" />
+    <Compile Include="GITHandler.cs" />
     <Compile Include="HandlerLogger.cs" />
     <Compile Include="InstallationChecker.cs" />
     <Compile Include="ConsoleTextBlockConnector.cs" />
@@ -134,6 +135,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <None Include="gc.enc" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -149,6 +151,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
+    <None Include="repos">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Resource Include="ToolLinks.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

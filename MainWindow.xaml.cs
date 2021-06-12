@@ -19,6 +19,8 @@ namespace WebsiteHandler_GUI
         private string GitVersion { get; set; } = "Nicht installiert";
         private string MobiriseVersion { get; set; } = "Nicht installiert";
 
+        private string ProjectStatus { get; set; } = "Kein Projekt gefunden!";
+        private string DefaultDateString { get; } = "dd.mm.yyyy hh:mm";
 
         public MainWindow() 
         { 
@@ -53,6 +55,7 @@ namespace WebsiteHandler_GUI
 
         private void LoadCurrentProjectMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            InitializeGetCurrentProjectCanvas();
             SwitchToCanvas(GetCurrentProjectCanvas);
         }
 
@@ -115,6 +118,7 @@ namespace WebsiteHandler_GUI
             /* Read from TextBoxes */
             HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
             HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
+            HandlerBackend.AssignDecryptor(new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile));
             HandlerBackend.UHandler.BackupSpacePath = BackupPathTextBox.Text;
 
             /* Update on other Canvases */
@@ -230,6 +234,39 @@ namespace WebsiteHandler_GUI
             }
         }
 
+
+        // UpdateLocalProject
+        private void GetLatestProjectVersionButton_Click(object sender, RoutedEventArgs e)
+        {
+            string stdout = "";
+            string stderr = "";
+
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink);
+            
+            if (tempHandler.IsGitRepository(HandlerBackend.UHandler.WorkspacePath))
+            {
+                AppendLineToConsole("PULL:");
+                tempHandler.PullLatestChanges(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
+
+            } else
+            {
+                AppendLineToConsole("CLONE:");
+                AppendLineToConsole("Im Arbeitsverzeichnis liegt noch kein Projekt ab.");
+                AppendLineToConsole("Das aktuelle Projekt wird nun heruntergeladen und alle Verzeichnisse erstellt.");
+                tempHandler.CloneProject(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
+            }
+
+            if (stdout != "")
+            {
+                AppendLineToConsole(">> OUTPUT: " + stdout);
+            }
+
+            if (stderr != "")
+            {
+                AppendLineToConsole(">> ERROR: " + stderr);
+            }
+        }
+
         /***********************/
         /* Canvas Initializers */
         /***********************/
@@ -247,6 +284,9 @@ namespace WebsiteHandler_GUI
 
             /* UserConfig Canvas */
             InitializeUserConfigCanvas();
+
+            /* Update Current Project Canvas */
+            InitializeGetCurrentProjectCanvas();
 
         }
         
@@ -332,6 +372,31 @@ namespace WebsiteHandler_GUI
             BackupPathTextBox.Text = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
         }
 
+        private void InitializeGetCurrentProjectCanvas()
+        {
+
+            if (!HandlerBackend.InstChecker.IsGitInstalled() || !HandlerBackend.InstChecker.IsMobiriseInstalled())
+            {
+                ProjectStatus = "Tools sind noch nicht installiert.";
+                ProjectStatusLabel.Content = ProjectStatus;
+                LocalRepoLabel.Content = DefaultDateString;
+                LatestRepoLabel.Content = DefaultDateString;
+                return;
+            }
+
+            if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
+            {
+                ProjectStatus = "Kein gültiger Arbeitsbereich gewählt";
+                ProjectStatusLabel.Content = ProjectStatus;
+                LocalRepoLabel.Content = DefaultDateString;
+                LatestRepoLabel.Content = DefaultDateString;
+                return;
+            }
+
+
+
+
+        }
 
         /* OTHERS */
         private void AppendLineToConsole()
@@ -348,5 +413,7 @@ namespace WebsiteHandler_GUI
         {
             ConsoleOutputTextBlock.Text += s;
         }
+
+
     }
 }
