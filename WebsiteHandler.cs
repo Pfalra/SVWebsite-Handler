@@ -10,6 +10,7 @@ namespace WebsiteHandlerBackend
 
         public string Version { get; } = "1.0.0";
         public string DefaultServerCredsPath { get; } = ".\\sc.enc";
+        public string DefaultGitCredsPath { get; } = ".\\gc.enc";
         public string DefaultEncryptorFile { get; } = ".\\Encryptor.exe";
         public string WebsiteRepoLink { get; set; } = "";
         public string HandlerRepoLink { get; set; } = "";
@@ -23,7 +24,8 @@ namespace WebsiteHandlerBackend
         public FTPHandler FtpHandler { get; }
         public GITHandler GitHandler { get; }
         
-        public Decryptor CredDecryptor { get; set; }
+        public Decryptor ServerCredDecryptor { get; set; }
+        public Decryptor GitCredDecryptor { get; set; }
         public HandlerLogger Logger { get; }
 
         public ConsoleTextBlockConnector Connector { get; set; }
@@ -44,7 +46,8 @@ namespace WebsiteHandlerBackend
                     Connector.WriteErrorLine(">> Es wurden noch nicht genügend Informationen angegeben, um die Anmeldedaten für den Server zu entschlüsseln!");
                 } else
                 {
-                    CredDecryptor = new Decryptor(DefaultServerCredsPath, userKeyPath, DefaultEncryptorFile);
+                    ServerCredDecryptor = new Decryptor(DefaultServerCredsPath, userKeyPath, DefaultEncryptorFile);
+                    GitCredDecryptor = new Decryptor(DefaultGitCredsPath, userKeyPath, DefaultEncryptorFile);
                 }
 
             }
@@ -61,12 +64,6 @@ namespace WebsiteHandlerBackend
             ReadRepositoryLinks();
         }
 
-
-        
-        public void AssignDecryptor(Decryptor dec)
-        {
-            CredDecryptor = dec;
-        }
 
         private void ReadRepositoryLinks()
         {

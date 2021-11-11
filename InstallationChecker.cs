@@ -10,11 +10,13 @@ namespace WebsiteHandlerBackend
         public ConsoleTextBlockConnector Connector;
 
         private string MobiriseAppDataPath;
+        private string MobiriseDefaultPath;
 
         public InstallationChecker(ConsoleTextBlockConnector c) 
         {
             Connector = c; 
             MobiriseAppDataPath = String.Format("C:\\Users\\{0}\\AppData\\Roaming\\Mobirise", Environment.UserName);
+            MobiriseDefaultPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + "\\Mobirise\\Mobirise.exe";
         }
 
         public bool IsGitInstalled()
@@ -70,7 +72,13 @@ namespace WebsiteHandlerBackend
             {
                 return "Nicht installiert";
             }
-            return Directory.GetCreationTime(MobiriseAppDataPath).ToString();
+
+            if (!File.Exists(MobiriseDefaultPath))
+            {
+                return "Nicht ermittelbar";
+            }
+
+            return System.Diagnostics.FileVersionInfo.GetVersionInfo(MobiriseDefaultPath).FileVersion;
         }
     }
 }

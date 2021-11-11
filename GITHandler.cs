@@ -11,13 +11,19 @@ namespace WebsiteHandlerBackend
     class GITHandler
     {
         string ProjectURL { get; set; } = "";
-        Decryptor gitCredDecryptor;
+        Decryptor GitCredDecryptor { get; set; } = null;
                
 
-        public GITHandler(string projectURL)
+        public GITHandler(string projectURL, Decryptor decryptor = null)
         {
             ProjectURL = projectURL;
+            GitCredDecryptor = decryptor;
 
+            if (GitCredDecryptor != null)
+            {
+                GitCredDecryptor.DecryptContent();
+                InsertCredsInUrl(ProjectURL, GitCredDecryptor);
+            }
         }
 
         public bool PullLatestChanges(string workspaceDir, out string stdOutput, out string stdError)
@@ -86,6 +92,24 @@ namespace WebsiteHandlerBackend
             }
 
             return false;
+        }
+    
+        
+        // TODO: TEST THIS FUNCTION
+        private string InsertCredsInUrl(string url, Decryptor dec)
+        {
+            if (String.IsNullOrEmpty(dec.DecryptedContent))
+            {
+                throw new Exception("Decryption of content returned null or empty string. \r\n" + dec.CredentialsPath);
+            } 
+            else
+            {
+                string protocolStr = ProjectURL.Substring(0, ProjectURL.IndexOf("//")-1);
+                string siteStr = ProjectURL.Substring(ProjectURL.IndexOf("//"));
+                string credStr = dec.DecryptedContent.Replace(dec.Separator, ':');
+
+                return String.Format("{0}//{1}@{2}", protocolStr, credStr, siteStr);
+            }
         }
     }
 }

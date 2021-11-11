@@ -64,11 +64,6 @@ namespace WebsiteHandler_GUI
             SwitchToCanvas(PublishCanvas);
         }
 
-        private void ListFtpMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            SwitchToCanvas(ListFtpFilesCanvas);
-        }
-
         private void UpdateHandlerMenuItem_Click(object sender, RoutedEventArgs e)
         {
             SwitchToCanvas(UpdateHandlerCanvas);
@@ -118,7 +113,8 @@ namespace WebsiteHandler_GUI
             /* Read from TextBoxes */
             HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
             HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
-            HandlerBackend.AssignDecryptor(new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile));
+            HandlerBackend.ServerCredDecryptor = new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
+            HandlerBackend.GitCredDecryptor = new Decryptor(HandlerBackend.DefaultGitCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
             HandlerBackend.UHandler.BackupSpacePath = BackupPathTextBox.Text;
 
             /* Update on other Canvases */
@@ -235,13 +231,13 @@ namespace WebsiteHandler_GUI
         }
 
 
-        // UpdateLocalProject
+        // TODO: UpdateLocalProject
         private void GetLatestProjectVersionButton_Click(object sender, RoutedEventArgs e)
         {
             string stdout = "";
             string stderr = "";
 
-            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink);
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.GitCredDecryptor);
             
             if (tempHandler.IsGitRepository(HandlerBackend.UHandler.WorkspacePath))
             {

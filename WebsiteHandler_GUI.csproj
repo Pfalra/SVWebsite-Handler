@@ -135,14 +135,10 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <None Include="gc.enc" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-    <None Include="sc.enc">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="WebsiteHandler_GUI_TemporaryKey.pfx" />
   </ItemGroup>

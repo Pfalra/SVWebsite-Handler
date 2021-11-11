@@ -60,14 +60,6 @@
                     </LinearGradientBrush>
                 </MenuItem.Background>
             </MenuItem>
-            <MenuItem x:Name="ListFtpMenuItem" Header="Dateien auf dem Server anzeigen" Height="50" Width="180" Click="ListFtpMenuItem_Click" Foreground="White" BorderBrush="Black" FontFamily="Calibri" AutomationProperties.Name="ListFtpMenuItem" Visibility="Visible">
-                <MenuItem.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="Black" Offset="1"/>
-                        <GradientStop Color="#FF0E0D0D"/>
-                    </LinearGradientBrush>
-                </MenuItem.Background>
-            </MenuItem>
             <MenuItem x:Name="UpdateHandlerMenuItem" Header="WebsiteHandler updaten" Height="50" Width="180" Click="UpdateHandlerMenuItem_Click" Foreground="White" BorderBrush="Black" FontFamily="Calibri" AutomationProperties.Name="UpdateHandlerMenuItem">
                 <MenuItem.Background>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -158,20 +150,6 @@
                 <TextBox x:Name="ChangesTextBox" Height="105" Canvas.Left="91" TextWrapping="Wrap" Canvas.Top="95" Width="358" Background="#FF303030" Foreground="White" SelectionBrush="#FF00D70A" CaretBrush="#FF2EFF00" BorderBrush="#FF7C7C7C" TextChanged="ChangesTextBox_TextChanged"/>
                 <Label x:Name="LocalVersionLabel" Content="dd.mm.yyyy" Canvas.Left="179" Canvas.Top="10" Foreground="White" Width="287"/>
                 <Label x:Name="PublicVersionLabel" Content="dd.mm.yyyy" Canvas.Left="179" Canvas.Top="33" Foreground="White" Width="287"/>
-            </Canvas>
-
-
-            <!-- LISTFTP-->
-            <Canvas x:Name="ListFtpFilesCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="ListFtpFilesCanvas" Visibility="Hidden" Margin="0,5,0,0">
-                <ScrollViewer Height="168" Canvas.Top="5" Width="517">
-                    <TreeView Height="134" Width="381" Foreground="{x:Null}" Background="{x:Null}" BorderBrush="{x:Null}">
-                        <TreeViewItem Header="FTPServer" Height="41" Width="282" IsExpanded="True" Foreground="White">
-                            <TreeViewItem Header="Unterelement" HorizontalAlignment="Left" Height="19" Width="250" Foreground="White"/>
-                        </TreeViewItem>
-                    </TreeView>
-                </ScrollViewer>
-                <Button x:Name="RefreshFtpList" Content="Aktualisieren" Height="25" Canvas.Left="10" Canvas.Top="178" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="RefreshFtpList_Click" FontWeight="Bold"/>
-
             </Canvas>
 
             <!-- UPDATE HANDLER -->

@@ -11,18 +11,22 @@ namespace WebsiteHandlerBackend
         public string CredentialsPath { get; set; }
         public string KeyPath { get; set; }
         public string ToolPath { get; set; }
+        public char Separator { get; set; }
 
-        public Decryptor(string credentialsPath, string keyPath, string encryptionToolPath) 
+        public Decryptor(string credentialsPath, string keyPath, string encryptionToolPath, char separator = '!') 
         {
             CredentialsPath = credentialsPath;
             KeyPath = keyPath;
-            ToolPath = encryptionToolPath;            
+            ToolPath = encryptionToolPath;
+            Separator = separator;
         }
 
-
+        // TODO: Fix issue with not finding the Encryptor.exe
         public string DecryptContent()
         {
-            if (File.Exists(CredentialsPath) && File.Exists(KeyPath))
+            bool credsExist = File.Exists(CredentialsPath);
+            bool keyExists = File.Exists(KeyPath);
+            if (credsExist && keyExists)
             {
                 string key = File.ReadAllText(KeyPath); // Read the key
 
