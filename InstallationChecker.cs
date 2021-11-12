@@ -5,13 +5,27 @@ namespace WebsiteHandlerBackend
 {
     class InstallationChecker
     {
+        /*********************************************************************************************/
+        /* Counters */
+        /*********************************************************************************************/
         public int ErrorCounter { set; get; }
-        public int InstallCounter { set; get; } 
+        public int InstallCounter { set; get; }
+
+        /*********************************************************************************************/
+        /* Connector for printing something to the main window */
+        /*********************************************************************************************/
         public ConsoleTextBlockConnector Connector;
 
+        /*********************************************************************************************/
+        /* Mobirise stuff */
+        /*********************************************************************************************/
         private string MobiriseAppDataPath;
         private string MobiriseDefaultPath;
 
+
+        /*********************************************************************************************/
+        /* Constructor */
+        /*********************************************************************************************/
         public InstallationChecker(ConsoleTextBlockConnector c) 
         {
             Connector = c; 
@@ -19,6 +33,10 @@ namespace WebsiteHandlerBackend
             MobiriseDefaultPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) + "\\Mobirise\\Mobirise.exe";
         }
 
+
+        /*********************************************************************************************/
+        /* Info retrieval */
+        /*********************************************************************************************/
         public bool IsGitInstalled()
         {
             /* If Git is installed it should be found in the PATH */

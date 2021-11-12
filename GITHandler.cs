@@ -10,10 +10,13 @@ namespace WebsiteHandlerBackend
 {
     class GITHandler
     {
+
         string ProjectURL { get; set; } = "";
         Decryptor GitCredDecryptor { get; set; } = null;
-               
 
+        /*********************************************************************************************/
+        /* Constructor */
+        /*********************************************************************************************/
         public GITHandler(string projectURL, Decryptor decryptor = null)
         {
             ProjectURL = projectURL;
@@ -26,6 +29,9 @@ namespace WebsiteHandlerBackend
             }
         }
 
+        /*********************************************************************************************/
+        /* Basic GIT stuff */
+        /*********************************************************************************************/
         public bool PullLatestChanges(string workspaceDir, out string stdOutput, out string stdError)
         {
             Process process = new Process();
@@ -78,7 +84,10 @@ namespace WebsiteHandlerBackend
 
             return false;
         }
-    
+
+        /*********************************************************************************************/
+        /* Validation functions */
+        /*********************************************************************************************/
         public bool IsGitRepository(string dir)
         {
             if (!Directory.Exists(dir))
@@ -93,8 +102,11 @@ namespace WebsiteHandlerBackend
 
             return false;
         }
-    
-        
+
+
+        /*********************************************************************************************/
+        /* URL manipulation */
+        /*********************************************************************************************/
         // TODO: TEST THIS FUNCTION
         private string InsertCredsInUrl(string url, Decryptor dec)
         {
@@ -110,6 +122,12 @@ namespace WebsiteHandlerBackend
 
                 return String.Format("{0}//{1}@{2}", protocolStr, credStr, siteStr);
             }
+        }
+    
+        //TODO!
+        private string InsertPatInUrl(string url, string pat)
+        {
+            return null;
         }
     }
 }

@@ -6,25 +6,46 @@ namespace WebsiteHandlerBackend
 {
     class UserHandler
     {
+
+        /*********************************************************************************************/
+        /* Keys within the dictionary */
+        /*********************************************************************************************/
         public string UserKey { get; } = "USER";
         public string WorkspaceKey { get; } = "WORKSPACE";
         public string BackupSpaceKey { get; } = "BACKUP";
         public string UserKeyPathKey { get; } = "USERKEYPATH";
 
+        /*********************************************************************************************/
+        /* Values within the dictionary */
+        /*********************************************************************************************/
         public string UserName { get; set; } = "";
         public string WorkspacePath { get; set; } = "";
         public string BackupSpacePath { get; set; } = "";
         public string UserKeyPath { get; set; } = "";
+        public string UserAccessKey { get; set; } = "";
 
+        /*********************************************************************************************/
+        /* General static values */
+        /*********************************************************************************************/
         private const string separator = "!";
         private const string foldername = "WebsiteHandler";
         private const string filename = "cfg.txt";
         private readonly string savePath = string.Format("C:\\Users\\{0}\\Documents\\{1}", Environment.UserName, foldername);
 
+        /*********************************************************************************************/
+        /* List for all Keys within the dicitonary */
+        /*********************************************************************************************/
         private List<string> KeyList { get; set; } = new List<string>();
 
+
+        /*********************************************************************************************/
+        /* Connector to print something out on a console */
+        /*********************************************************************************************/
         ConsoleTextBlockConnector Connector;
 
+        /*********************************************************************************************/
+        /* Constructor */
+        /*********************************************************************************************/
         public UserHandler(ConsoleTextBlockConnector c) 
         {
             Connector = c;
@@ -32,9 +53,16 @@ namespace WebsiteHandlerBackend
             KeyList.Add(WorkspaceKey);
             KeyList.Add(BackupSpaceKey);
             KeyList.Add(UserKeyPathKey);
+
+            if (!String.IsNullOrEmpty(UserKeyPath) && File.Exists(UserKeyPath))
+            {
+                UserAccessKey = ReadUserAccessKey(UserKeyPath);
+            }
         }
 
-
+        /*********************************************************************************************/
+        /* Getters */
+        /*********************************************************************************************/
         /* Returns the path to the directory where the config file for the user is saved */
         public string GetSavePath()
         {
@@ -46,7 +74,10 @@ namespace WebsiteHandlerBackend
         {
             return string.Format("{0}\\{1}", GetSavePath(), filename);
         }
-    
+
+        /*********************************************************************************************/
+        /* User config validation */
+        /*********************************************************************************************/
         /* Returns true if username is set and valid */
         public bool IsUsernameSet()
         {
@@ -76,6 +107,19 @@ namespace WebsiteHandlerBackend
             return true;
         }
 
+        public bool IsConfigExistent()
+        {
+            Dictionary<string, string> map = ReadConfig();
+            if (map == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /*********************************************************************************************/
+        /* Manipulation of the user config file and r/w operations */
+        /*********************************************************************************************/
         public void DeleteUserInfo()
         {
             File.Delete(savePath  + "\\" + filename);
@@ -87,6 +131,38 @@ namespace WebsiteHandlerBackend
             Connector.WriteLine(Environment.GetEnvironmentVariable("PATH"));
         }
     
+        public string ReadUserAccessKey(string path)
+        {
+            if (path.Trim().Length == 0 || path == null || !Path.IsPathRooted(path))
+            {
+                /* Invalid Path */
+                return null;
+            }
+            else if  (File.Exists(path))
+            {
+                /* File does not exist */
+                return null;
+            }
+            else
+            {
+                string retval = File.ReadAllText(path);
+
+                if (retval == null || retval.Trim().Length == 0)
+                {
+                    /* Invalid User key */
+                    return null;
+                }
+
+                if (retval.Trim().Length > 64)
+                {
+                    /* Key to long */
+                    return null;
+                }
+
+                return retval;
+            }
+        }
+
         public string GetFromConfig(string key)
         {
             Dictionary<string, string> map = ReadConfig();
@@ -102,17 +178,6 @@ namespace WebsiteHandlerBackend
             }
 
             return "";
-        }
-
-
-        public bool IsConfigExistent()
-        {
-            Dictionary<string, string> map = ReadConfig();
-            if (map == null)
-            {
-                return false;
-            }
-            return true;
         }
 
         public void EditConfig(string key, string value)

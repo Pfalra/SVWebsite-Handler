@@ -28,14 +28,6 @@
                     </LinearGradientBrush>
                 </MenuItem.Background>
             </MenuItem>
-            <MenuItem x:Name="BackupMenuItem" Header="Sicherung erstellen" Height="50" Width="180" Click="BackupMenuItem_Click" Foreground="White" BorderBrush="Black" FontFamily="Calibri" AutomationProperties.Name="BackupMenuItem">
-                <MenuItem.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="Black" Offset="1"/>
-                        <GradientStop Color="#FF0E0D0D"/>
-                    </LinearGradientBrush>
-                </MenuItem.Background>
-            </MenuItem>
             <MenuItem x:Name="UserConfigMenuItem" Header="Nutzerkonfiguration" Height="50" Width="180" Click="UserConfigMenuItem_Click" Foreground="White" BorderBrush="Black" FontFamily="Calibri" AutomationProperties.Name="UserConfigMenuItem">
                 <MenuItem.Background>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -102,15 +94,6 @@
             </Canvas>
 
 
-            <!-- BACKUP -->
-            <Canvas x:Name="BackupCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="BackupCanvas" Visibility="Hidden" Margin="0,5,0,0">
-                <Label Content="Sicherungsordner:" Canvas.Left="10" Canvas.Top="10" Foreground="White" Width="213"/>
-                <Button x:Name="StartBackupButton" Content="Sicherung starten" Height="25" Canvas.Left="10" Canvas.Top="65" Width="100" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="StartBackupButton_Click"/>
-                <Label x:Name="BackupStatusLabel" Content="Status:" Canvas.Left="10" Canvas.Top="35" Foreground="White" Width="445"/>
-
-            </Canvas>
-
-
             <!-- USERCONFIG -->
             <Canvas x:Name="UserConfigCanvas" Grid.Column="2" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="UserConfigCanvas" Visibility="Hidden" Margin="0,5,0,0">
                 <Label Content="Vorname:" Canvas.Left="10" Canvas.Top="10" Foreground="White" Width="100"/>
@@ -121,10 +104,6 @@
                 <Label Content="User-Key Datei:" Canvas.Left="12" Canvas.Top="63" Foreground="White" Width="203"/>
                 <TextBox x:Name="UserKeyTextBox" HorizontalAlignment="Left" Height="23" TextWrapping="NoWrap" Text="" VerticalAlignment="Top" Width="340" Background="#FF424242" Foreground="White" CaretBrush="#FF00FF0C" BorderBrush="#FF383838" SelectionBrush="#FF595959" Grid.Column="2" Canvas.Left="12" Canvas.Top="88" />
                 <Button x:Name="UserKey_BrowseButton" Content="..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="41" Background="White" Click="UserKey_BrowseButton_Click" BorderBrush="White" FontWeight="Bold" Height="23" Grid.Column="2" Canvas.Left="357" Canvas.Top="88"/>
-
-                <TextBox x:Name="BackupPathTextBox" TextWrapping="Wrap" Text="" BorderBrush="{x:Null}" Background="#FF424242" CaretBrush="#FF00FF23" SelectionBrush="#FF00D714" Foreground="White" Grid.Column="2" Canvas.Left="11" Canvas.Top="145" Width="341" Height="23"/>
-                <Button x:Name="BrowseButton" Content="..." Width="41" FontSize="16" HorizontalAlignment="Center" Background="White" BorderBrush="{x:Null}" Click="BackupBrowseButton_Click" Grid.Column="2" Canvas.Left="357" Canvas.Top="145" Height="23"/>
-                <Label Content="Pfad zum Sicherungsordner:" Canvas.Left="10" Canvas.Top="115" Foreground="White" Width="205"/>
 
             </Canvas>
 

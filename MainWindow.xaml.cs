@@ -4,24 +4,39 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using WebsiteHandlerBackend;
-//using WK.Libraries.BetterFolderBrowserNS;
 
 namespace WebsiteHandler_GUI
 {
     public partial class MainWindow : Window
     {
+        /*********************************************************************************************/
+        /* Variables and Attributes */
+        /*********************************************************************************************/
+        /* ConsoleConnector makes a connection from another object to the console within this window */
         private ConsoleTextBlockConnector ConsoleConnector;
+
+        /* Static version information */
         private string GuiVersion { get; } = "1.0.0";
         private string BackendVersion { get; set; } = "1.0.0";
-        private WebsiteHandler HandlerBackend { get; set; }
 
-        private Canvas ActiveCanvas;
+        /* User dependent version information */
         private string GitVersion { get; set; } = "Nicht installiert";
         private string MobiriseVersion { get; set; } = "Nicht installiert";
 
+        /* Backend Object */
+        private WebsiteHandler HandlerBackend { get; set; }
+
+        /* Active canvas object for switching */
+        private Canvas ActiveCanvas;
+
+        /* Project information */
         private string ProjectStatus { get; set; } = "Kein Projekt gefunden!";
         private string DefaultDateString { get; } = "dd.mm.yyyy hh:mm";
 
+
+        /*********************************************************************************************/
+        /* Constructor */
+        /*********************************************************************************************/
         public MainWindow() 
         { 
             InitializeComponent();
@@ -33,6 +48,9 @@ namespace WebsiteHandler_GUI
             ActiveCanvas = HomeCanvas;
         }
 
+        /*********************************************************************************************/
+        /* Button Actions */
+        /*********************************************************************************************/
         private void HomeMenuItem_Click(object sender, RoutedEventArgs e)
         {
             SwitchToCanvas(HomeCanvas);
@@ -43,10 +61,6 @@ namespace WebsiteHandler_GUI
             SwitchToCanvas(ToolInstallCanvas);
         }
 
-        private void BackupMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            SwitchToCanvas(BackupCanvas);
-        }
 
         private void UserConfigMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -82,9 +96,9 @@ namespace WebsiteHandler_GUI
         }
 
 
-        /************************/
+        /*********************************************************************************************/
         /* Buttons within cards */
-        /************************/
+        /*********************************************************************************************/
 
         // UserConfig Canvas
         private void SubmitConfigButton_Click(object sender, RoutedEventArgs e)
@@ -99,11 +113,6 @@ namespace WebsiteHandler_GUI
                 AppendLineToConsole("Wählen Sie eine gültige User-Key Datei aus.");
             }
 
-            if (!Path.IsPathRooted(BackupPathTextBox.Text))
-            {
-                AppendLineToConsole("Wählen Sie ein gültiges Backup-Verzeichnis aus.");
-            }
-
             if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
             {
                 AppendLineToConsole("Wählen Sie ein gültiges Arbeitsverzeichnis aus.");
@@ -113,9 +122,11 @@ namespace WebsiteHandler_GUI
             /* Read from TextBoxes */
             HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
             HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
-            HandlerBackend.ServerCredDecryptor = new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
-            HandlerBackend.GitCredDecryptor = new Decryptor(HandlerBackend.DefaultGitCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
-            HandlerBackend.UHandler.BackupSpacePath = BackupPathTextBox.Text;
+
+
+            // TODO: Remove Encryption/Decryption as we now use PATs from Github
+            //HandlerBackend.ServerCredDecryptor = new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
+            //HandlerBackend.GitCredDecryptor = new Decryptor(HandlerBackend.DefaultGitCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
 
             /* Update on other Canvases */
             UserConfigTextBlock.Text = "Nutzerkonfiguration: " + HandlerBackend.UHandler.UserName;
@@ -123,15 +134,14 @@ namespace WebsiteHandler_GUI
             /* Edit the Config-File */
             HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKey, HandlerBackend.UHandler.UserName);
             HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKeyPathKey, HandlerBackend.UHandler.UserKeyPath);
-            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.BackupSpaceKey, HandlerBackend.UHandler.BackupSpacePath);
 
             /* Output on console */
             AppendLineToConsole("--> Userkonfiguration übernommen: " + HandlerBackend.UHandler.UserName);
             AppendLineToConsole("User-Key Pfad: " + HandlerBackend.UHandler.UserKeyPath);
-            AppendLineToConsole("Backup Pfad: " + HandlerBackend.UHandler.BackupSpacePath);
             AppendLineToConsole("Arbeitsbereich: " + HandlerBackend.UHandler.WorkspacePath);
             AppendLineToConsole();
         }
+
 
         private void UserKey_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -141,7 +151,7 @@ namespace WebsiteHandler_GUI
                 InitialDirectory = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName),
                 Multiselect = false,
                 ShowHelp = false,
-                Filter = "User-Key Dateien (*.cryp)|*.cryp",
+                Filter = "User-Key Dateien (*.uk)|*.uk",
                 CheckFileExists = true,
                 CheckPathExists = true
             };
@@ -149,22 +159,6 @@ namespace WebsiteHandler_GUI
             UserKeyTextBox.Text = fileDialog.FileName;
         }
         
-        private void BackupBrowseButton_Click(object sender, RoutedEventArgs e)
-        {
-            FolderBrowserDialog dialog = new FolderBrowserDialog();
-            dialog.ShowNewFolderButton = true;
-            dialog.Description = "Auswahl des Sicherungsordners";
-            dialog.ShowDialog();
-
-            if (dialog.SelectedPath != "")
-            {
-                BackupPathTextBox.Text = dialog.SelectedPath;
-                HandlerBackend.UHandler.BackupSpacePath = dialog.SelectedPath;
-                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.BackupSpaceKey, dialog.SelectedPath);
-
-            }
-        }
-
         // ToolInstall Canvas
         private void GitInstallMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -192,16 +186,6 @@ namespace WebsiteHandler_GUI
                 HandlerBackend.UHandler.WorkspacePath = dialog.SelectedPath;
                 HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.WorkspaceKey, dialog.SelectedPath);
             }
-        }
-
-        // Backup Canvas
-        private void StartBackupButton_Click(object sender, RoutedEventArgs e)
-        {
-            /* TODO: IMPLEMENT FTP DOWNLOAD */
-            // Retrieve User-Key from File
-
-            // Decrypt Server Credentials
-
         }
 
         // Show FTP Files Canvas
@@ -263,9 +247,10 @@ namespace WebsiteHandler_GUI
             }
         }
 
-        /***********************/
+
+        /*********************************************************************************************/
         /* Canvas Initializers */
-        /***********************/
+        /*********************************************************************************************/
 
         private void InitializeCanvasesContent()
         {
@@ -275,8 +260,6 @@ namespace WebsiteHandler_GUI
             /* ToolInstall Canvas */
             InitializeToolInstallCanvas();
 
-            /* Backup Canvas */
-            InitializeBackupCanvas();
 
             /* UserConfig Canvas */
             InitializeUserConfigCanvas();
@@ -339,6 +322,7 @@ namespace WebsiteHandler_GUI
             }
         }
     
+
         private void InitializeUserConfigCanvas()
         {
             if (HandlerBackend.UHandler.UserName.Contains(" "))
@@ -355,18 +339,18 @@ namespace WebsiteHandler_GUI
             if (HandlerBackend.UHandler.IsConfigExistent())
             {
                 HandlerBackend.UHandler.UserKeyPath = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.UserKeyPathKey);
-                HandlerBackend.UHandler.BackupSpacePath = HandlerBackend.UHandler.GetFromConfig(HandlerBackend.UHandler.BackupSpaceKey);
+
+                if (String.IsNullOrEmpty(HandlerBackend.UHandler.UserKeyPath))
+                {
+                    AppendLineToConsole("Es ist kein valider User-Key Pfad gesetzt.");
+                }
 
                 UserKeyTextBox.Text = HandlerBackend.UHandler.UserKeyPath;
-                BackupPathTextBox.Text = HandlerBackend.UHandler.BackupSpacePath;
+
+
             }
         }
 
-        private void InitializeBackupCanvas()
-        {
-            BackupStatusLabel.Content = "Status: Nutzen Sie den Button um die Sicherung am angegebenen Pfad abzulegen.";
-            BackupPathTextBox.Text = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName);
-        }
 
         private void InitializeGetCurrentProjectCanvas()
         {
@@ -394,7 +378,9 @@ namespace WebsiteHandler_GUI
 
         }
 
+        /*********************************************************************************************/
         /* OTHERS */
+        /*********************************************************************************************/
         private void AppendLineToConsole()
         {
             ConsoleOutputTextBlock.Text += "\r\n";

@@ -5,6 +5,11 @@ namespace WebsiteHandlerBackend
 {
     class WebsiteHandler
     {
+
+        /*********************************************************************************************/
+        /* WebsiteHandler variables (purpose: making updates of the handler and store general 
+         * config-filepaths ) */
+        /*********************************************************************************************/
         private string handlerKey = "HANDLER";
         private string websiteKey = "WEBSITE";
 
@@ -17,19 +22,35 @@ namespace WebsiteHandlerBackend
 
         public string ServerName { get; set; } = "";
 
+        /*********************************************************************************************/
+        /* Handlers */
+        /*********************************************************************************************/
         public UserHandler UHandler { get; }
         public InstallationChecker InstChecker { get; }
         public ToolInstaller Installer { get; }
 
         public FTPHandler FtpHandler { get; }
         public GITHandler GitHandler { get; }
-        
+
+        /*********************************************************************************************/
+        /* DEPRECATED: Decryptors for usage of credentials stored locally */
+        /*********************************************************************************************/
         public Decryptor ServerCredDecryptor { get; set; }
         public Decryptor GitCredDecryptor { get; set; }
+
+        /*********************************************************************************************/
+        /* Logger for the case of debugging */
+        /*********************************************************************************************/
         public HandlerLogger Logger { get; }
 
+        /*********************************************************************************************/
+        /* Connector to print something to the main window */
+        /*********************************************************************************************/
         public ConsoleTextBlockConnector Connector { get; set; }
 
+        /*********************************************************************************************/
+        /* Constructor */ 
+        /*********************************************************************************************/
         public WebsiteHandler(ConsoleTextBlockConnector c) 
         {
             Connector = c;
