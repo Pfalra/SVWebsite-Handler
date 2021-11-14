@@ -113,8 +113,8 @@
                 <Label Content="Aktueller Stand:" Canvas.Left="10" Canvas.Top="35" Foreground="White" Width="90"/>
                 <Button x:Name="GetLatestProjectVersionButton" Content="Aktuellen Stand herunterladen" Height="25" Canvas.Left="10" Canvas.Top="63" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="GetLatestProjectVersionButton_Click"/>
                 <Label Content="Status:" Canvas.Left="220" Canvas.Top="63" Foreground="White" Width="45"/>
-                <Label x:Name="LocalRepoLabel" Content="" Canvas.Left="100" Canvas.Top="10" Foreground="White" Width="115"/>
-                <Label x:Name="LatestRepoLabel" Content="" Canvas.Left="100" Canvas.Top="35" Foreground="White" Width="115"/>
+                <Label x:Name="LocalRepoLabel" Content="" Canvas.Left="100" Canvas.Top="10" Foreground="White" Width="400"/>
+                <Label x:Name="LatestRepoLabel" Content="" Canvas.Left="100" Canvas.Top="35" Foreground="White" Width="400"/>
                 <Label x:Name="ProjectStatusLabel" Content="" Canvas.Left="270" Canvas.Top="63" Foreground="White" Width="237"/>
             </Canvas>
 
@@ -140,7 +140,7 @@
             </Canvas>
         </Canvas>
         <ScrollViewer Grid.Column="2" HorizontalAlignment="Left" Height="186" Margin="0,249,0,0" VerticalAlignment="Top" Width="507">
-            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsolenausgabe:" Margin="10,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock"/>
+            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsolenausgabe:" Margin="10,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock" ToolTip="Diese Konsole zeigt wertvolle Infos" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False" Height="1000"/>
         </ScrollViewer>
     </Grid>
 </Window>

@@ -30,7 +30,9 @@ namespace WebsiteHandlerBackend
         private const string separator = "!";
         private const string foldername = "WebsiteHandler";
         private const string filename = "cfg.txt";
-        private readonly string savePath = string.Format("C:\\Users\\{0}\\Documents\\{1}", Environment.UserName, foldername);
+        private readonly string savePath = String.Format("C:\\Users\\{0}\\Documents\\{1}", 
+                                                         Environment.UserName, 
+                                                         foldername);
 
         /*********************************************************************************************/
         /* List for all Keys within the dicitonary */

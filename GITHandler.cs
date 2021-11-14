@@ -10,12 +10,18 @@ namespace WebsiteHandlerBackend
 {
     class GITHandler
     {
+        /* Note: To use token authentication we can use commands like 
+         * "git push https://<GITHUB_ACCESS_TOKEN>@github.com/<GITHUB_USERNAME>/<REPOSITORY_NAME>.git" 
+         */
 
-        string ProjectURL { get; set; } = "";
-        Decryptor GitCredDecryptor { get; set; } = null;
+        private const string GithubUname = "SGEdelweiss";
+        private const string RepoName = "Website";
+
+        private string ProjectURL { get; set; } = "";
+        private Decryptor GitCredDecryptor { get; set; } = null;
 
         /*********************************************************************************************/
-        /* Constructor */
+        /* Constructors */
         /*********************************************************************************************/
         public GITHandler(string projectURL, Decryptor decryptor = null)
         {
@@ -29,6 +35,14 @@ namespace WebsiteHandlerBackend
             }
         }
 
+
+        public GITHandler(string projectURL, UserHandler userHandler)
+        {
+            ProjectURL = projectURL;
+
+            ProjectURL = InsertPatInUrl(ProjectURL, userHandler.UserAccessKey);
+        }
+
         /*********************************************************************************************/
         /* Basic GIT stuff */
         /*********************************************************************************************/
@@ -38,8 +52,9 @@ namespace WebsiteHandlerBackend
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\" && git pull \"";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git pull \"";
             startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true; 
             startInfo.UseShellExecute = false;
             process.StartInfo = startInfo;
             process.Start();
@@ -57,7 +72,7 @@ namespace WebsiteHandlerBackend
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = "/C cd /d " + workspaceDir + "&& git add -A && git commit -a -m \"" + message + "\"";
+            startInfo.Arguments = "/C cd /d " + workspaceDir + "\\" + RepoName + "&& git add -A && git commit -a -m \"" + message + "\"";
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
             process.StartInfo = startInfo;
@@ -90,12 +105,13 @@ namespace WebsiteHandlerBackend
         /*********************************************************************************************/
         public bool IsGitRepository(string dir)
         {
-            if (!Directory.Exists(dir))
+            if (!Directory.Exists(dir + "\\" + RepoName))
             {
                 return false;
             }
 
-            if (Directory.GetFileSystemEntries(dir).Any(strVal => strVal.CompareTo(".git") == 0))
+            string[] fileNames = Directory.GetFileSystemEntries(dir + "\\" + RepoName);
+            if (Directory.GetFileSystemEntries(dir + "\\" + RepoName).Any(strVal => strVal.EndsWith(".git")))
             {
                 return true;
             }
@@ -103,7 +119,46 @@ namespace WebsiteHandlerBackend
             return false;
         }
 
+        public string GetLastCommitDate(string workspaceDir, out string stdOutput, out string stdError)
+        {
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci --date=local \"";
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            process.StartInfo = startInfo;
+            process.Start();
 
+            stdOutput = process.StandardOutput.ReadToEnd();
+            stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            return stdOutput;
+        }
+
+        public string GetLastRemoteCommitDate(string workspaceDir, out string stdOutput, out string stdError)
+        {
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log origin -1 --format=%ci --date=local \"";
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            process.StartInfo = startInfo;
+            process.Start();
+
+            stdOutput = process.StandardOutput.ReadToEnd();
+            stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            return stdOutput;
+
+        }
         /*********************************************************************************************/
         /* URL manipulation */
         /*********************************************************************************************/
@@ -124,10 +179,10 @@ namespace WebsiteHandlerBackend
             }
         }
     
-        //TODO!
+
         private string InsertPatInUrl(string url, string pat)
         {
-            return null;
+            return String.Format("https://{0}@github.com/{1}/{2}.git", pat, GithubUname, RepoName) ;
         }
     }
 }

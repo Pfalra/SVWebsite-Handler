@@ -3,7 +3,9 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Globalization;
 using WebsiteHandlerBackend;
+using System.Windows.Media;
 
 namespace WebsiteHandler_GUI
 {
@@ -40,6 +42,8 @@ namespace WebsiteHandler_GUI
         public MainWindow() 
         { 
             InitializeComponent();
+            ConsoleOutputTextBlock.TextTrimming = TextTrimming.None;
+            ConsoleOutputTextBlock.TextWrapping = TextWrapping.Wrap;
 
             ConsoleConnector = new ConsoleTextBlockConnector(ConsoleOutputTextBlock);
             HandlerBackend = new WebsiteHandler(ConsoleConnector);
@@ -103,62 +107,16 @@ namespace WebsiteHandler_GUI
         // UserConfig Canvas
         private void SubmitConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            if (FirstNameBox.Text.Trim() == "" || LastNameBox.Text.Trim() == "")
-            {
-                AppendLineToConsole("Bitte geben Sie einen gültigen Namen ein.");
-            }
-
-            if (!Path.IsPathRooted(UserKeyTextBox.Text))
-            {
-                AppendLineToConsole("Wählen Sie eine gültige User-Key Datei aus.");
-            }
-
-            if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
-            {
-                AppendLineToConsole("Wählen Sie ein gültiges Arbeitsverzeichnis aus.");
-            }
-
-
-            /* Read from TextBoxes */
-            HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
-            HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
-
-
-            // TODO: Remove Encryption/Decryption as we now use PATs from Github
-            //HandlerBackend.ServerCredDecryptor = new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
-            //HandlerBackend.GitCredDecryptor = new Decryptor(HandlerBackend.DefaultGitCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
-
-            /* Update on other Canvases */
-            UserConfigTextBlock.Text = "Nutzerkonfiguration: " + HandlerBackend.UHandler.UserName;
-
-            /* Edit the Config-File */
-            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKey, HandlerBackend.UHandler.UserName);
-            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKeyPathKey, HandlerBackend.UHandler.UserKeyPath);
-
-            /* Output on console */
-            AppendLineToConsole("--> Userkonfiguration übernommen: " + HandlerBackend.UHandler.UserName);
-            AppendLineToConsole("User-Key Pfad: " + HandlerBackend.UHandler.UserKeyPath);
-            AppendLineToConsole("Arbeitsbereich: " + HandlerBackend.UHandler.WorkspacePath);
-            AppendLineToConsole();
+            SubmitUserConfig();
         }
 
 
         private void UserKey_BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog
-            {
-                Title = "Auswahl der User-Key Datei",
-                InitialDirectory = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName),
-                Multiselect = false,
-                ShowHelp = false,
-                Filter = "User-Key Dateien (*.uk)|*.uk",
-                CheckFileExists = true,
-                CheckPathExists = true
-            };
-            fileDialog.ShowDialog();
-            UserKeyTextBox.Text = fileDialog.FileName;
+            HandleUserKeyBrowse();
         }
         
+
         // ToolInstall Canvas
         private void GitInstallMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -170,29 +128,16 @@ namespace WebsiteHandler_GUI
             HandlerBackend.Installer.InstallMobirise();
         }
 
+
         // Home Canvas 
         private void WorkspaceBrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dialog = new FolderBrowserDialog
-            {
-                ShowNewFolderButton = true,
-                Description = "Auswahl des Arbeitsbereichs"
-            };
-            dialog.ShowDialog();
-            
-            if (dialog.SelectedPath != "")
-            {
-                WorkspaceTextBox.Text = dialog.SelectedPath;
-                HandlerBackend.UHandler.WorkspacePath = dialog.SelectedPath;
-                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.WorkspaceKey, dialog.SelectedPath);
-            }
+            HandleWorkspaceBrowse();
+
+            /* Reinitialize */
+            InitializeGetCurrentProjectCanvas();
         }
 
-        // Show FTP Files Canvas
-        private void RefreshFtpList_Click(object sender, RoutedEventArgs e)
-        {
-            /* TODO: IMPLEMENT FTP PEEK */
-        }
 
         // Publish Canvas
         private void ChangesTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -221,7 +166,7 @@ namespace WebsiteHandler_GUI
             string stdout = "";
             string stderr = "";
 
-            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.GitCredDecryptor);
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
             
             if (tempHandler.IsGitRepository(HandlerBackend.UHandler.WorkspacePath))
             {
@@ -236,12 +181,12 @@ namespace WebsiteHandler_GUI
                 tempHandler.CloneProject(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
             }
 
-            if (stdout != "")
+            if (!String.IsNullOrWhiteSpace(stdout))
             {
                 AppendLineToConsole(">> OUTPUT: " + stdout);
             }
 
-            if (stderr != "")
+            if (!String.IsNullOrWhiteSpace(stderr))
             {
                 AppendLineToConsole(">> ERROR: " + stderr);
             }
@@ -354,7 +299,7 @@ namespace WebsiteHandler_GUI
 
         private void InitializeGetCurrentProjectCanvas()
         {
-
+            /* Check installations */
             if (!HandlerBackend.InstChecker.IsGitInstalled() || !HandlerBackend.InstChecker.IsMobiriseInstalled())
             {
                 ProjectStatus = "Tools sind noch nicht installiert.";
@@ -364,6 +309,7 @@ namespace WebsiteHandler_GUI
                 return;
             }
 
+            /* Check for valid workspace */
             if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
             {
                 ProjectStatus = "Kein gültiger Arbeitsbereich gewählt";
@@ -373,13 +319,177 @@ namespace WebsiteHandler_GUI
                 return;
             }
 
+            UpdateReadRepoProperties();
+        }
+
+        /*********************************************************************************************/
+        /* OTHERS */
+        /*********************************************************************************************/
+        private void UpdateReadRepoProperties()
+        {
+            DateTime dtLocal = new DateTime();
+            DateTime dtRemote = new DateTime();
+
+            /* All entries valid so read properties of the repo */
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            AppendLineToConsole("Ermittle lokalen Stand...");
+            tempHandler.GetLastCommitDate(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+
+            if (!String.IsNullOrEmpty(stdout))
+            {
+                AppendLineToConsole(">> OUTPUT: " + stdout);
+            }
+
+            if (!String.IsNullOrEmpty(stderr))
+            {
+                AppendLineToConsole(">> ERROR: " + stderr);
+            }
+
+            AppendLineToConsole("Lokaler Stand ermittelt.\r\n");
+
+            if (stdout.Length < 22)
+            {
+                LocalRepoLabel.Content = stdout;
+                dtLocal = DateTime.ParseExact(stdout, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+            }
+
+
+            AppendLineToConsole("Ermittle Stand auf dem Server...");
+            tempHandler.GetLastRemoteCommitDate(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
+
+            if (!String.IsNullOrEmpty(stdout))
+            {
+                AppendLineToConsole(">> OUTPUT: " + stdout);
+            }
+
+            if (!String.IsNullOrEmpty(stderr))
+            {
+                AppendLineToConsole(">> ERROR: " + stderr);
+            }
+
+            AppendLineToConsole("Server-Stand ermittelt.\r\n");
+
+            if (stdout.Length < 22)
+            {
+                dtRemote = DateTime.ParseExact(stdout, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+            }
+ 
+            if (dtLocal != null && dtRemote != null)
+            {
+                int comp = DateTime.Compare(dtLocal, dtRemote);
+
+                if (comp > 0)
+                {
+                    AppendLineToConsole("Der lokale Stand ist neuer als der auf dem Server.");
+                    ProjectStatusLabel.Foreground = new SolidColorBrush(Colors.YellowGreen);
+                    ProjectStatusLabel.Content = "Lokal voraus";
+                } else if (comp < 0)
+                {
+                    AppendLineToConsole("Der lokale Stand ist älter als der auf dem Server.");
+                    ProjectStatusLabel.Foreground = new SolidColorBrush(Colors.Red);
+                    ProjectStatusLabel.Content = "Lokal hinterher";
+                } else
+                {
+                    AppendLineToConsole("Der Arbeitsbereich ist auf dem aktuellen Stand.");
+                    ProjectStatusLabel.Foreground = new SolidColorBrush(Colors.Green);
+                    ProjectStatusLabel.Content = "Gleich";
+                }
+            }
+
+            LocalRepoLabel.Content = dtLocal.ToString("dd.MM.yyyy hh:mm:ss");
+            LatestRepoLabel.Content = dtRemote.ToString("dd.MM.yyyy hh:mm:ss");
+            
 
 
 
         }
 
         /*********************************************************************************************/
-        /* OTHERS */
+        /* File/Folder Browsing */
+        /*********************************************************************************************/
+        private void HandleWorkspaceBrowse()
+        {
+            FolderBrowserDialog dialog = new FolderBrowserDialog
+            {
+                ShowNewFolderButton = true,
+                Description = "Auswahl des Arbeitsbereichs"
+            };
+            dialog.ShowDialog();
+
+            if (dialog.SelectedPath != "")
+            {
+                WorkspaceTextBox.Text = dialog.SelectedPath;
+                HandlerBackend.UHandler.WorkspacePath = dialog.SelectedPath;
+                HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.WorkspaceKey, dialog.SelectedPath);
+            }
+        }
+
+        private void HandleUserKeyBrowse()
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog
+            {
+                Title = "Auswahl der User-Key Datei",
+                InitialDirectory = String.Format("C:\\Users\\{0}\\Desktop", Environment.UserName),
+                Multiselect = false,
+                ShowHelp = false,
+                Filter = "User-Key Dateien (*.uk)|*.uk",
+                CheckFileExists = true,
+                CheckPathExists = true
+            };
+            fileDialog.ShowDialog();
+            UserKeyTextBox.Text = fileDialog.FileName;
+        }
+
+
+        /*********************************************************************************************/
+        /* User Config Submission */
+        /*********************************************************************************************/
+        private void SubmitUserConfig()
+        {
+            if (FirstNameBox.Text.Trim() == "" || LastNameBox.Text.Trim() == "")
+            {
+                AppendLineToConsole("Bitte geben Sie einen gültigen Namen ein.");
+            }
+
+            if (!Path.IsPathRooted(UserKeyTextBox.Text))
+            {
+                AppendLineToConsole("Wählen Sie eine gültige User-Key Datei aus.");
+            }
+
+            if (!Path.IsPathRooted(HandlerBackend.UHandler.WorkspacePath))
+            {
+                AppendLineToConsole("Wählen Sie ein gültiges Arbeitsverzeichnis aus.");
+            }
+
+
+            /* Read from TextBoxes */
+            HandlerBackend.UHandler.UserName = FirstNameBox.Text + " " + LastNameBox.Text;
+            HandlerBackend.UHandler.UserKeyPath = UserKeyTextBox.Text;
+
+
+            // TODO: Remove Encryption/Decryption as we now use PATs from Github
+            //HandlerBackend.ServerCredDecryptor = new Decryptor(HandlerBackend.DefaultServerCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
+            //HandlerBackend.GitCredDecryptor = new Decryptor(HandlerBackend.DefaultGitCredsPath, UserKeyTextBox.Text, HandlerBackend.DefaultEncryptorFile);
+
+            /* Update on other Canvases */
+            UserConfigTextBlock.Text = "Nutzerkonfiguration: " + HandlerBackend.UHandler.UserName;
+
+            /* Edit the Config-File */
+            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKey, HandlerBackend.UHandler.UserName);
+            HandlerBackend.UHandler.EditConfig(HandlerBackend.UHandler.UserKeyPathKey, HandlerBackend.UHandler.UserKeyPath);
+
+            /* Output on console */
+            AppendLineToConsole("--> Userkonfiguration übernommen: " + HandlerBackend.UHandler.UserName);
+            AppendLineToConsole("User-Key Pfad: " + HandlerBackend.UHandler.UserKeyPath);
+            AppendLineToConsole("Arbeitsbereich: " + HandlerBackend.UHandler.WorkspacePath);
+            AppendLineToConsole();
+        }
+
+
+
+
+        /*********************************************************************************************/
+        /* Console Handling */
         /*********************************************************************************************/
         private void AppendLineToConsole()
         {
