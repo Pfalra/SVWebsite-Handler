@@ -125,7 +125,7 @@ namespace WebsiteHandlerBackend
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci --date=local \"";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci \"";
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;
@@ -145,7 +145,7 @@ namespace WebsiteHandlerBackend
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log origin -1 --format=%ci --date=local \"";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log origin -1 --format=%ci \"";
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;

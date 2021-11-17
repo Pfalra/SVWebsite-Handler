@@ -347,10 +347,12 @@ namespace WebsiteHandler_GUI
 
             AppendLineToConsole("Lokaler Stand ermittelt.\r\n");
 
-            if (stdout.Length < 22)
+            string[] dateStr = stdout.Split(' ');
+            string formStr = dateStr[0] + " " + dateStr[1];
+
+            if (stdout.Length < 30)
             {
-                LocalRepoLabel.Content = stdout;
-                dtLocal = DateTime.ParseExact(stdout, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                dtLocal = DateTime.Parse(formStr);
             }
 
 
@@ -369,9 +371,12 @@ namespace WebsiteHandler_GUI
 
             AppendLineToConsole("Server-Stand ermittelt.\r\n");
 
-            if (stdout.Length < 22)
+            dateStr = stdout.Split(' ');
+            formStr = dateStr[0] + " " + dateStr[1];
+
+            if (stdout.Length < 30)
             {
-                dtRemote = DateTime.ParseExact(stdout, "yyyy-MM-dd hh:mm:ss", CultureInfo.InvariantCulture);
+                dtRemote = DateTime.Parse(formStr);
             }
  
             if (dtLocal != null && dtRemote != null)
