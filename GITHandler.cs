@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 
 namespace WebsiteHandlerBackend
 {
@@ -15,7 +18,7 @@ namespace WebsiteHandlerBackend
          */
 
         private const string GithubUname = "SGEdelweiss";
-        private const string RepoName = "Website";
+        public string RepoName = "";
 
         private string ProjectURL { get; set; } = "";
         private Decryptor GitCredDecryptor { get; set; } = null;
@@ -37,10 +40,26 @@ namespace WebsiteHandlerBackend
 
 
         public GITHandler(string projectURL, UserHandler userHandler)
-        {
+        { 
             ProjectURL = projectURL;
 
-            ProjectURL = InsertPatInUrl(ProjectURL, userHandler.UserAccessKey);
+            if (!projectURL.Contains(".git") || !projectURL.Contains('/'))
+            {
+                /* repos file is broken */
+                // TODO: Find a proper way to handle such thing
+
+                ProjectURL = "REPOS FILE BROKEN";
+            }
+            else
+            {
+                RepoName = projectURL;
+                int start = RepoName.LastIndexOf('/')+1;
+                int end = RepoName.LastIndexOf(".git");
+                int len = RepoName.Length;
+                RepoName = RepoName.Substring(start, end-start);
+                ProjectURL = InsertPatInUrl(ProjectURL, userHandler.UserAccessKey);
+            }
+
         }
 
         /*********************************************************************************************/
@@ -124,7 +143,9 @@ namespace WebsiteHandlerBackend
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
             startInfo.FileName = "cmd";
+
             startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci \"";
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
@@ -136,7 +157,7 @@ namespace WebsiteHandlerBackend
             stdError = process.StandardError.ReadToEnd();
             process.WaitForExit();
 
-            return stdOutput;
+            return FormatCommitDate(stdOutput);
         }
 
         public string GetLastRemoteCommitDate(string workspaceDir, out string stdOutput, out string stdError)
@@ -144,8 +165,9 @@ namespace WebsiteHandlerBackend
             Process process = new Process();
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
             startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log origin -1 --format=%ci \"";
+            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git fetch && git log origin -1 --format=%ci \"";
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;
@@ -156,8 +178,130 @@ namespace WebsiteHandlerBackend
             stdError = process.StandardError.ReadToEnd();
             process.WaitForExit();
 
-            return stdOutput;
+            return FormatCommitDate(stdOutput);
+        }
 
+        public int GetLocalNumberOfCommits(out string stdOutput, out string stdError, string workspace = "")
+        {
+            int result = -1;
+            string executableDirName = Assembly.GetExecutingAssembly().Location;
+
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
+            startInfo.FileName = "cmd";
+
+            if (workspace == "")
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all\"";
+            } else
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all\"";
+            }
+
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            process.StartInfo = startInfo;
+            process.Start();
+
+            stdOutput = process.StandardOutput.ReadToEnd();
+            stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (!String.IsNullOrEmpty(stdOutput) && int.TryParse(stdOutput, out result))
+            {
+                return result;
+            }
+
+            return -1;
+        }
+
+        public int GetRemoteNumberOfCommits(out string stdOutput, out string stdError, string workspace = "")
+        {
+            int result = -1;
+            string executableDirName = Assembly.GetExecutingAssembly().Location;
+
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
+            startInfo.FileName = "cmd";
+
+            if (workspace == "")
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
+            }
+            else
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
+            }
+
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            process.StartInfo = startInfo;
+            process.Start();
+
+            stdOutput = process.StandardOutput.ReadToEnd();
+            stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (!String.IsNullOrEmpty(stdOutput) && int.TryParse(stdOutput, out result))
+            {
+                return result;
+            }
+
+            return -1;
+        }
+
+
+        /* Count the amount of commits first locally and then on the remote 
+         * and calculates local commits - remote commits.
+         * Returns by how many commits the local repo is ahead or behind the remote.
+         */
+        public int GetCommitCountDifference(out string stdOutput, out string stdError, string workspace = "")
+        {
+            string executableDirName = Assembly.GetExecutingAssembly().Location;
+
+            Process process = new Process();
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
+            startInfo.FileName = "cmd";
+
+            if (workspace == "")
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
+            }
+            else
+            {
+                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
+            }
+
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            process.StartInfo = startInfo;
+            process.Start();
+
+            stdOutput = process.StandardOutput.ReadToEnd();
+            stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (String.IsNullOrEmpty(stdOutput))
+            {
+                stdError += "\r\n>> Commit Anzahl konnte nicht ermittelt werden.";
+                return -1;
+            }
+
+            /* Split the output into lines and read the commit count */
+            string[] temp = Regex.Split(stdOutput, "\r\n|\r|\n");
+            int.TryParse(temp[0], out int localCommitCount);
+            int.TryParse(temp[1], out int remoteCommitCount);
+
+            return localCommitCount - remoteCommitCount;
         }
         /*********************************************************************************************/
         /* URL manipulation */
@@ -184,5 +328,40 @@ namespace WebsiteHandlerBackend
         {
             return String.Format("https://{0}@github.com/{1}/{2}.git", pat, GithubUname, RepoName) ;
         }
+
+
+        /*********************************************************************************************/
+        /* Date manipulation */
+        /*********************************************************************************************/
+        private string FormatCommitDate(string dateStr)
+        {
+            if (String.IsNullOrEmpty(dateStr))
+            {
+                return "";
+            }
+
+            string[] tmpStr = dateStr.Split(' '); /* Get each entity from the git output */
+            string date = tmpStr[0];   
+            string time = tmpStr[1];
+            string timezone = tmpStr[2];
+
+            /* Time is represented the right way. Date must be formatted to dd.MM.yyyy*/
+            tmpStr = date.Split('-');
+            date = String.Format("{0}.{1}.{2}", tmpStr[2], tmpStr[1], tmpStr[0]);
+
+            return String.Format("{0} {1}", date, time);
+        }
+
+        /*********************************************************************************************/
+        /* Path manipulation */
+        /*********************************************************************************************/
+        private string FormatPathForGit(string path)
+        {
+            string retVal = path.Replace('\\', '/');
+            retVal = retVal.Remove(':');
+            return retVal;
+        }
     }
+
+
 }

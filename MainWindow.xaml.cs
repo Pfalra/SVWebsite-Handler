@@ -20,6 +20,7 @@ namespace WebsiteHandler_GUI
         /* Static version information */
         private string GuiVersion { get; } = "1.0.0";
         private string BackendVersion { get; set; } = "1.0.0";
+        private string HandlerVersion { get; set; } = "1.0.0";
 
         /* User dependent version information */
         private string GitVersion { get; set; } = "Nicht installiert";
@@ -34,6 +35,7 @@ namespace WebsiteHandler_GUI
         /* Project information */
         private string ProjectStatus { get; set; } = "Kein Projekt gefunden!";
         private string DefaultDateString { get; } = "dd.mm.yyyy hh:mm";
+        private bool PublishPossible { get; set; }
 
 
         /*********************************************************************************************/
@@ -87,6 +89,7 @@ namespace WebsiteHandler_GUI
             SwitchToCanvas(UpdateHandlerCanvas);
         }
 
+
         private void SwitchToCanvas(Canvas c)
         {
             if (c.Equals(ActiveCanvas))
@@ -100,6 +103,10 @@ namespace WebsiteHandler_GUI
         }
 
 
+        private void ClearConsoleButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearConsole();
+        }
         /*********************************************************************************************/
         /* Buttons within cards */
         /*********************************************************************************************/
@@ -142,8 +149,14 @@ namespace WebsiteHandler_GUI
         // Publish Canvas
         private void ChangesTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Set Button active
-            if (ChangesTextBox.Text.Length > 15)
+            if (ChangesTextBox.Text.Length > 200)
+            {
+                if (PublishChangesButton.IsEnabled)
+                {
+                    PublishChangesButton.IsEnabled = false;
+                }
+            }
+            else if (ChangesTextBox.Text.Length > 15 && PublishPossible)
             {
                 if (!PublishChangesButton.IsEnabled)
                 {
@@ -160,7 +173,23 @@ namespace WebsiteHandler_GUI
         }
 
 
-        // TODO: UpdateLocalProject
+        private void PublishChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            PublishChanges(ChangesTextBox.Text);
+        }
+
+
+        // Update Canvas
+        private void UpdateHandlerButton_Click(object sender, RoutedEventArgs e)
+        {
+            GITHandler tempHandler = new GITHandler(HandlerBackend.HandlerRepoLink, HandlerBackend.UHandler);
+
+            /* Check if the Handler is out-dated */
+
+        }
+
+
+        // Update Local
         private void GetLatestProjectVersionButton_Click(object sender, RoutedEventArgs e)
         {
             string stdout = "";
@@ -212,6 +241,11 @@ namespace WebsiteHandler_GUI
             /* Update Current Project Canvas */
             InitializeGetCurrentProjectCanvas();
 
+            /* Update HandlerCanvas */
+            InitializeUpdateHandlerCanvas();
+
+            /* Publishing Canvas */
+            InitializePublishCanvas();
         }
         
         private void InitializeHomeCanvas()
@@ -322,18 +356,63 @@ namespace WebsiteHandler_GUI
             UpdateReadRepoProperties();
         }
 
+
+        private void InitializeUpdateHandlerCanvas()
+        {
+            VersionLabel.Content = HandlerVersion;
+
+        }
+
+        private void InitializePublishCanvas()
+        {
+            string workspace = HandlerBackend.UHandler.WorkspacePath;
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            int commitDiff = tempHandler.GetCommitCountDifference(out string stdout, out string stderr, workspace);
+
+            string localDate = tempHandler.GetLastCommitDate(workspace, out stdout, out stderr);
+            string remoteDate = tempHandler.GetLastRemoteCommitDate(workspace, out stdout, out stderr);
+
+            LocalVersionLabel.Content = localDate;
+            PublicVersionLabel.Content = remoteDate;
+            CommitDifferenceLabel.Content = commitDiff;
+
+            if (commitDiff == 0)
+            {
+                AppendLineToConsole("Keine Änderungen zum Veröffentlichen vorhanden.");
+                PublishStatusLabel.Content = "Gleich";
+
+            } else if (commitDiff < 0)
+            {
+                PublishStatusLabel.Content = "Das lokale Projekt ist hinterher. Erst aktualisieren.";
+            } else
+            {
+                PublishStatusLabel.Content = "Änderungen können veröffentlicht werden.";
+            }
+        }
+
+        /*********************************************************************************************/
+        /* Publishing */
+        /*********************************************************************************************/
+
+        private void PublishChanges(string message)
+        {
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            tempHandler.CommitPushLatestChanges(HandlerBackend.UHandler.WorkspacePath, message);
+        }
+        /*********************************************************************************************/
+        /* Update Handler */
+        /*********************************************************************************************/
+        
+
         /*********************************************************************************************/
         /* OTHERS */
         /*********************************************************************************************/
         private void UpdateReadRepoProperties()
         {
-            DateTime dtLocal = new DateTime();
-            DateTime dtRemote = new DateTime();
-
             /* All entries valid so read properties of the repo */
             GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
             AppendLineToConsole("Ermittle lokalen Stand...");
-            tempHandler.GetLastCommitDate(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+            string localTimeStr = tempHandler.GetLastCommitDate(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
 
             if (!String.IsNullOrEmpty(stdout))
             {
@@ -347,17 +426,16 @@ namespace WebsiteHandler_GUI
 
             AppendLineToConsole("Lokaler Stand ermittelt.\r\n");
 
-            string[] dateStr = stdout.Split(' ');
-            string formStr = dateStr[0] + " " + dateStr[1];
-
-            if (stdout.Length < 30)
+            if (String.IsNullOrEmpty(stdout) || String.IsNullOrEmpty(localTimeStr))
             {
-                dtLocal = DateTime.Parse(formStr);
+                AppendLineToConsole("Fehler beim Abholen der letzten Änderungen!");
+                AppendLineToConsole("Ist der Projektpfad richtig gesetzt?");
+                return;
             }
 
 
             AppendLineToConsole("Ermittle Stand auf dem Server...");
-            tempHandler.GetLastRemoteCommitDate(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
+            string remoteTimeStr = tempHandler.GetLastRemoteCommitDate(HandlerBackend.UHandler.WorkspacePath, out stdout, out stderr);
 
             if (!String.IsNullOrEmpty(stdout))
             {
@@ -369,18 +447,21 @@ namespace WebsiteHandler_GUI
                 AppendLineToConsole(">> ERROR: " + stderr);
             }
 
-            AppendLineToConsole("Server-Stand ermittelt.\r\n");
 
-            dateStr = stdout.Split(' ');
-            formStr = dateStr[0] + " " + dateStr[1];
-
-            if (stdout.Length < 30)
+            if (String.IsNullOrEmpty(stdout) || String.IsNullOrEmpty(localTimeStr))
             {
-                dtRemote = DateTime.Parse(formStr);
+                AppendLineToConsole("Fehler bei der Ermittlung des Server-Standes!");
+                return;
+            } else
+            {
+                AppendLineToConsole("Server-Stand ermittelt.\r\n");
             }
- 
-            if (dtLocal != null && dtRemote != null)
+
+             
+            if (localTimeStr != null && remoteTimeStr != null)
             {
+                DateTime dtLocal = DateTime.Parse(localTimeStr);
+                DateTime dtRemote = DateTime.Parse(remoteTimeStr);
                 int comp = DateTime.Compare(dtLocal, dtRemote);
 
                 if (comp > 0)
@@ -401,8 +482,8 @@ namespace WebsiteHandler_GUI
                 }
             }
 
-            LocalRepoLabel.Content = dtLocal.ToString("dd.MM.yyyy hh:mm:ss");
-            LatestRepoLabel.Content = dtRemote.ToString("dd.MM.yyyy hh:mm:ss");
+            LocalRepoLabel.Content = localTimeStr;
+            LatestRepoLabel.Content = remoteTimeStr;
             
 
 
@@ -503,6 +584,17 @@ namespace WebsiteHandler_GUI
 
         private void AppendLineToConsole(string s)
         {
+            if (s == null || s == "")
+            {
+                ConsoleOutputTextBlock.Text += "\r\n";
+            }
+
+            if (ConsoleOutputTextBlock.Text.EndsWith("\r\n") || ConsoleOutputTextBlock.Text.EndsWith("\n"))
+            {
+                ConsoleOutputTextBlock.Text += s;
+                return;
+            }
+
             ConsoleOutputTextBlock.Text += "\r\n" + s;
         }
 
@@ -511,6 +603,10 @@ namespace WebsiteHandler_GUI
             ConsoleOutputTextBlock.Text += s;
         }
 
+        private void ClearConsole()
+        {
+            ConsoleOutputTextBlock.Text = "";
+        }
 
     }
 }
