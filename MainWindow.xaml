@@ -108,13 +108,20 @@
 
             <!-- CURRENTPROJECT -->
             <Canvas x:Name="GetCurrentProjectCanvas" Grid.Column="1" HorizontalAlignment="Left" Height="210" VerticalAlignment="Top" Width="517" Background="#FF0E0E0E" AutomationProperties.Name="GetCurrentProjectCanvas" Visibility="Hidden" Margin="0,5,0,0">
-                <Label Content="Lokaler Stand:" Canvas.Left="10" Canvas.Top="10" Foreground="White" Width="90"/>
-                <Label Content="Aktueller Stand:" Canvas.Left="10" Canvas.Top="35" Foreground="White" Width="90"/>
-                <Button x:Name="GetLatestProjectVersionButton" Content="Aktuellen Stand herunterladen" Height="25" Canvas.Left="10" Canvas.Top="63" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="GetLatestProjectVersionButton_Click"/>
-                <Label Content="Status:" Canvas.Left="220" Canvas.Top="63" Foreground="White" Width="45"/>
-                <Label x:Name="LocalRepoLabel" Content="" Canvas.Left="100" Canvas.Top="10" Foreground="White" Width="400"/>
-                <Label x:Name="LatestRepoLabel" Content="" Canvas.Left="100" Canvas.Top="35" Foreground="White" Width="400"/>
-                <Label x:Name="ProjectStatusLabel" Content="" Canvas.Left="270" Canvas.Top="63" Foreground="White" Width="237"/>
+                <Label Content="Lokaler Stand:" Canvas.Left="13" Canvas.Top="10" Foreground="White" Width="87"/>
+                <Label Content="Aktueller Stand:" Canvas.Left="13" Canvas.Top="35" Foreground="White" Width="87"/>
+                <Button x:Name="GetLatestProjectVersionButton" Content="Aktuellen Stand herunterladen" Height="24" Canvas.Left="302" Canvas.Top="10" Width="193" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="GetLatestProjectVersionButton_Click"/>
+                <Label Content="Status:" Canvas.Left="13" Canvas.Top="59" Foreground="White" Width="45"/>
+                <Label x:Name="LocalRepoLabel" Content="" Canvas.Left="100" Canvas.Top="10" Foreground="White" Width="202"/>
+                <Label x:Name="LatestRepoLabel" Content="" Canvas.Left="100" Canvas.Top="35" Foreground="White" Width="198"/>
+                <Label x:Name="ProjectStatusLabel" Content="" Canvas.Left="58" Canvas.Top="59" Foreground="White" Width="126" Height="25"/>
+                <Button x:Name="CommitChangesButton" Content="Änderungen vorbereiten" Height="24
+                        " Canvas.Left="302" Canvas.Top="35" Width="193" BorderBrush="{x:Null}" Foreground="Black" Click="CommitChangesButton_Click" Background="White"/>
+                <Label Content="Kommentar:" Canvas.Left="13" Canvas.Top="118" Foreground="White" Width="81"/>
+                <TextBox x:Name="ChangesTextBox" Height="82" Canvas.Left="95" TextWrapping="Wrap" Canvas.Top="118" Width="400" Background="#FF303030" Foreground="White" SelectionBrush="#FF00D70A" CaretBrush="#FF2EFF00" BorderBrush="#FF7C7C7C" TextChanged="ChangesTextBox_TextChanged"/>
+                <Button x:Name="RemoveChangesButton" Content="Änderungen verwerfen" Height="24" Canvas.Left="302" Canvas.Top="61" Width="193" BorderBrush="{x:Null}" Foreground="Black" Click="RemoveChangesButton_Click" Background="White"/>
+                <Label x:Name="ChangesAvailableLabel" Content="&#xD;&#xA;" Canvas.Left="142" Canvas.Top="91" Foreground="White" Width="101" Height="24"/>
+                <Label Content="Änderungen vorhanden:" Canvas.Left="13" Canvas.Top="91" Foreground="White" Width="130"/>
             </Canvas>
 
 
@@ -124,8 +131,6 @@
                 <Label Content="Aktueller öffentlicher Stand:" Canvas.Left="10" Canvas.Top="35" Foreground="White" Width="161"/>
                 <Button x:Name="PublishChangesButton" Content="Änderungen veröffentlichen" Height="25" Canvas.Left="10" Canvas.Top="63" Width="205" BorderBrush="{x:Null}" Background="White" Foreground="Black" Click="PublishChangesButton_Click"/>
                 <Label Content="Status:" Canvas.Left="220" Canvas.Top="63" Foreground="White" Width="50"/>
-                <Label Content="Änderungen:" Canvas.Left="10" Canvas.Top="93" Foreground="White" Width="81"/>
-                <TextBox x:Name="ChangesTextBox" Height="105" Canvas.Left="91" TextWrapping="Wrap" Canvas.Top="95" Width="358" Background="#FF303030" Foreground="White" SelectionBrush="#FF00D70A" CaretBrush="#FF2EFF00" BorderBrush="#FF7C7C7C" TextChanged="ChangesTextBox_TextChanged"/>
                 <Label x:Name="LocalVersionLabel" Content="dd.mm.yyyy" Canvas.Left="162" Canvas.Top="10" Foreground="White" Width="135"/>
                 <Label x:Name="PublicVersionLabel" Content="dd.mm.yyyy" Canvas.Left="162" Canvas.Top="35" Foreground="White" Width="135"/>
                 <Label x:Name="PublishStatusLabel" Content="Nicht ermittelt" Canvas.Left="270" Canvas.Top="63" Foreground="White" Width="179"/>
@@ -145,8 +150,9 @@
             </Canvas>
         </Canvas>
         <ScrollViewer Grid.Column="1" HorizontalAlignment="Left" Height="186" Margin="0,254,0,0" VerticalAlignment="Top" Width="511" Foreground="{x:Null}" PanningMode="VerticalOnly">
-            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsolenausgabe:" Margin="8,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock" ToolTip="Diese Konsole zeigt wertvolle Infos" ScrollViewer.CanContentScroll="True" UseLayoutRounding="True" Height="904" Width="485"/>
+            <TextBlock x:Name="ConsoleOutputTextBlock" TextWrapping="Wrap" Text="Konsolenausgabe:" Margin="8,2,2,2" Foreground="#FF19C528" AutomationProperties.Name="ConsoleOutputTextBlock" ToolTip="Diese Konsole zeigt wertvolle Infos" ScrollViewer.CanContentScroll="True" UseLayoutRounding="True"/>
         </ScrollViewer>
         <Button x:Name="ClearConsoleButton" Content="C" HorizontalAlignment="Left" Height="20" Margin="186,420,0,0" VerticalAlignment="Top" Width="20" Click="ClearConsoleButton_Click" BorderBrush="{x:Null}" ToolTip="Leert die Konsoleausgabe" Foreground="White" Background="#FF008023" ScrollViewer.VerticalScrollBarVisibility="Visible" Padding="0,0,0,0" Grid.IsSharedSizeScope="True" FontFamily="Arial"/>
+        <Button x:Name="SendIssueButton" Content="Problem melden" HorizontalAlignment="Left" Height="20" Margin="10,420,0,0" VerticalAlignment="Top" Width="97" Click="SendIssueButton_Click" BorderBrush="{x:Null}" ToolTip="Sendet den Konsolenoutput an die Email-Adresse des Entwicklers" Foreground="Black" Background="White" ScrollViewer.VerticalScrollBarVisibility="Visible" Padding="0,0,0,0" Grid.IsSharedSizeScope="True" FontFamily="Calibri"/>
     </Grid>
 </Window>

@@ -18,6 +18,7 @@ namespace WebsiteHandler_GUI
         private ConsoleTextBlockConnector ConsoleConnector;
 
         /* Static version information */
+        private const string DevMail = "raphael.pfaller.dev@googlemail.com"; 
         private string GuiVersion { get; } = "1.0.0";
         private string BackendVersion { get; set; } = "1.0.0";
         private string HandlerVersion { get; set; } = "1.0.0";
@@ -75,7 +76,7 @@ namespace WebsiteHandler_GUI
 
         private void LoadCurrentProjectMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            InitializeGetCurrentProjectCanvas();
+            InitializeLocalProjectCanvas();
             SwitchToCanvas(GetCurrentProjectCanvas);
         }
 
@@ -142,7 +143,7 @@ namespace WebsiteHandler_GUI
             HandleWorkspaceBrowse();
 
             /* Reinitialize */
-            InitializeGetCurrentProjectCanvas();
+            InitializeLocalProjectCanvas();
         }
 
 
@@ -175,7 +176,7 @@ namespace WebsiteHandler_GUI
 
         private void PublishChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            PublishChanges(ChangesTextBox.Text);
+            PublishChanges();
         }
 
 
@@ -221,7 +222,27 @@ namespace WebsiteHandler_GUI
             }
         }
 
+        // Commit Changes 
+        private void CommitChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            //tempHandler.CommitLatestChanges();
+            InitializeLocalProjectCanvas();
+        }
 
+        // Remove/Unstage Changes
+        private void RemoveChangesButton_Click(object sender, RoutedEventArgs e)
+        {
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            tempHandler.RemoveChanges(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+        }
+
+        // Send problem message / Open Mailing Programme
+        private void SendIssueButton_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("mailto:" + DevMail + "?subject=WebsiteHandlerProblem &body=ConsoleOutput " + 
+                ConsoleOutputTextBlock.Text.Replace("\r\n", Environment.NewLine).Replace("\n", Environment.NewLine));
+        }
         /*********************************************************************************************/
         /* Canvas Initializers */
         /*********************************************************************************************/
@@ -239,7 +260,7 @@ namespace WebsiteHandler_GUI
             InitializeUserConfigCanvas();
 
             /* Update Current Project Canvas */
-            InitializeGetCurrentProjectCanvas();
+            InitializeLocalProjectCanvas();
 
             /* Update HandlerCanvas */
             InitializeUpdateHandlerCanvas();
@@ -331,7 +352,7 @@ namespace WebsiteHandler_GUI
         }
 
 
-        private void InitializeGetCurrentProjectCanvas()
+        private void InitializeLocalProjectCanvas()
         {
             /* Check installations */
             if (!HandlerBackend.InstChecker.IsGitInstalled() || !HandlerBackend.InstChecker.IsMobiriseInstalled())
@@ -354,6 +375,17 @@ namespace WebsiteHandler_GUI
             }
 
             UpdateReadRepoProperties();
+
+            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+            
+            if(tempHandler.ChangesAvailable(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr))
+            {
+                ChangesAvailableLabel.Content = "Ja";
+            } else
+            {
+                ChangesAvailableLabel.Content = "Nein";
+            }
+
         }
 
 
@@ -394,10 +426,13 @@ namespace WebsiteHandler_GUI
         /* Publishing */
         /*********************************************************************************************/
 
-        private void PublishChanges(string message)
+        private void PublishChanges()
         {
             GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
-            tempHandler.CommitPushLatestChanges(HandlerBackend.UHandler.WorkspacePath, message);
+            tempHandler.PushLatestChanges(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+
+            AppendLineToConsole(stdout);
+            AppendLineToConsole(stderr);
         }
         /*********************************************************************************************/
         /* Update Handler */
@@ -484,10 +519,6 @@ namespace WebsiteHandler_GUI
 
             LocalRepoLabel.Content = localTimeStr;
             LatestRepoLabel.Content = remoteTimeStr;
-            
-
-
-
         }
 
         /*********************************************************************************************/
@@ -571,9 +602,6 @@ namespace WebsiteHandler_GUI
             AppendLineToConsole();
         }
 
-
-
-
         /*********************************************************************************************/
         /* Console Handling */
         /*********************************************************************************************/
@@ -607,6 +635,7 @@ namespace WebsiteHandler_GUI
         {
             ConsoleOutputTextBlock.Text = "";
         }
+
 
     }
 }

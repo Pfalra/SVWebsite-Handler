@@ -65,56 +65,49 @@ namespace WebsiteHandlerBackend
         /*********************************************************************************************/
         /* Basic GIT stuff */
         /*********************************************************************************************/
-        public bool PullLatestChanges(string workspaceDir, out string stdOutput, out string stdError)
+        public void PullLatestChanges(string workspaceDir, out string stdOutput, out string stdError)
         {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git pull \"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true; 
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
-            return false;
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git pull \"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
         }
 
-        public bool CommitPushLatestChanges(string workspaceDir, string message)
-        {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = "/C cd /d " + workspaceDir + "\\" + RepoName + "&& git add -A && git commit -a -m \"" + message + "\"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
 
-            return false;
+        public void PushLatestChanges(string workspaceDir, out string stdOutput, out string stdError)
+        {
+            string argStr = "/C cd /d " + workspaceDir + "\\" + RepoName + "&& git push";
+            StartGitProcess(argStr, out stdOutput, out stdError);
         }
 
-        public bool CloneProject(string destDir, out string stdOutput, out string stdError)
-        {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \"cd /d \"" + destDir + "\" && git clone " + ProjectURL + "\"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
 
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
+        public void CloneProject(string destDir, out string stdOutput, out string stdError)
+        {
+            string argStr = "/c \"cd /d \"" + destDir + "\" && git clone " + ProjectURL + "\"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
+        }
+
+
+        public void CommitLatestChanges(string workspaceDir, string message, out string stdOutput, out string stdError)
+        {
+            string argStr = "/C cd /d " + workspaceDir + "\\" + RepoName + "&& git add -A && git commit -a -m \"" + message + "\"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
+        }
+        
+
+        public void RemoveChanges(string workspaceDir, out string stdOutput, out string stdError)
+        {
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git reset --hard \"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
+        }
+        
+        
+        public bool ChangesAvailable(string workspaceDir, out string stdOutput, out string stdError)
+        {
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git status --short \"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
+            if (stdOutput.Count(f => f.CompareTo(Environment.NewLine) == 0) > 1)
+            {
+                return true;
+            }
 
             return false;
         }
@@ -138,77 +131,39 @@ namespace WebsiteHandlerBackend
             return false;
         }
 
+
         public string GetLastCommitDate(string workspaceDir, out string stdOutput, out string stdError)
         {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = "cmd";
-
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci \"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git log -1 --format=%ci \"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
             return FormatCommitDate(stdOutput);
         }
+
 
         public string GetLastRemoteCommitDate(string workspaceDir, out string stdOutput, out string stdError)
         {
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = "cmd";
-            startInfo.Arguments = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git fetch && git log origin -1 --format=%ci \"";
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git fetch && git log origin -1 --format=%ci \"";
+            StartGitProcess(argStr, out stdOutput, out stdError);
             return FormatCommitDate(stdOutput);
         }
+
 
         public int GetLocalNumberOfCommits(out string stdOutput, out string stdError, string workspace = "")
         {
             int result = -1;
             string executableDirName = Assembly.GetExecutingAssembly().Location;
 
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = "cmd";
+            string argStr;
 
             if (workspace == "")
             {
-                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all\"";
+                argStr = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all\"";
             } else
             {
-                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all\"";
+                argStr = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all\"";
             }
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            StartGitProcess(argStr, out stdOutput, out stdError);
 
             if (!String.IsNullOrEmpty(stdOutput) && int.TryParse(stdOutput, out result))
             {
@@ -218,35 +173,23 @@ namespace WebsiteHandlerBackend
             return -1;
         }
 
+
         public int GetRemoteNumberOfCommits(out string stdOutput, out string stdError, string workspace = "")
         {
             int result = -1;
             string executableDirName = Assembly.GetExecutingAssembly().Location;
 
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = "cmd";
-
+            string argStr;
             if (workspace == "")
             {
-                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
+                argStr = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
             }
             else
             {
-                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
+                argStr = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git fetch && git rev-list origin --count --all\"";
             }
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            StartGitProcess(argStr, out stdOutput, out stdError);
 
             if (!String.IsNullOrEmpty(stdOutput) && int.TryParse(stdOutput, out result))
             {
@@ -265,30 +208,18 @@ namespace WebsiteHandlerBackend
         {
             string executableDirName = Assembly.GetExecutingAssembly().Location;
 
-            Process process = new Process();
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.CreateNoWindow = true;
-            startInfo.FileName = "cmd";
+            string argStr;
 
             if (workspace == "")
             {
-                startInfo.Arguments = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
+                argStr = "/c \" cd /d \"" + executableDirName + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
             }
             else
             {
-                startInfo.Arguments = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
+                argStr = "/c \" cd /d \"" + workspace + "\\" + RepoName + "\" && git rev-list --count --all && git rev-list origin --count --all\"";
             }
 
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            process.StartInfo = startInfo;
-            process.Start();
-
-            stdOutput = process.StandardOutput.ReadToEnd();
-            stdError = process.StandardError.ReadToEnd();
-            process.WaitForExit();
+            StartGitProcess(argStr, out stdOutput, out stdError);
 
             if (String.IsNullOrEmpty(stdOutput))
             {
@@ -303,6 +234,7 @@ namespace WebsiteHandlerBackend
 
             return localCommitCount - remoteCommitCount;
         }
+        
         /*********************************************************************************************/
         /* URL manipulation */
         /*********************************************************************************************/
@@ -361,7 +293,36 @@ namespace WebsiteHandlerBackend
             retVal = retVal.Remove(':');
             return retVal;
         }
+
+        /*********************************************************************************************/
+        /* Process generation and starting */
+        /*********************************************************************************************/
+        private void StartGitProcess(string argStr, out string stdout, out string stderr)
+        {
+            if (!String.IsNullOrEmpty(argStr))
+            {
+                Process process = new Process();
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.CreateNoWindow = true;
+                startInfo.FileName = "cmd";
+                startInfo.Arguments = argStr;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.UseShellExecute = false;
+                process.StartInfo = startInfo;
+                process.Start();
+
+                stdout = process.StandardOutput.ReadToEnd();
+                stderr = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+            } else
+            {
+                stdout = "";
+                stderr = "";
+            }
+
+        }
+    
     }
-
-
 }
