@@ -43,7 +43,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\007_Tools\WebsiteHandler_Publish\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -63,9 +63,6 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BetterFolderBrowser, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\BetterFolderBrowser.1.2.0\lib\BetterFolderBrowser.dll</HintPath>
-    </Reference>
     <Reference Include="CommandLine, Version=2.8.0.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
       <HintPath>packages\CommandLineParser.2.8.0\lib\net461\CommandLine.dll</HintPath>
     </Reference>
@@ -148,7 +145,7 @@
   <ItemGroup>
     <Content Include=".gitignore" />
     <None Include="repos">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Resource Include="ToolLinks.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

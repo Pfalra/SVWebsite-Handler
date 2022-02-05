@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Globalization;
 using WebsiteHandlerBackend;
 using System.Windows.Media;
 
@@ -36,7 +35,7 @@ namespace WebsiteHandler_GUI
         /* Project information */
         private string ProjectStatus { get; set; } = "Kein Projekt gefunden!";
         private string DefaultDateString { get; } = "dd.mm.yyyy hh:mm";
-        private bool PublishPossible { get; set; }
+        private bool CommitPossible { get; set; }
 
 
         /*********************************************************************************************/
@@ -108,6 +107,8 @@ namespace WebsiteHandler_GUI
         {
             ClearConsole();
         }
+
+
         /*********************************************************************************************/
         /* Buttons within cards */
         /*********************************************************************************************/
@@ -152,23 +153,23 @@ namespace WebsiteHandler_GUI
         {
             if (ChangesTextBox.Text.Length > 200)
             {
-                if (PublishChangesButton.IsEnabled)
+                if (CommitChangesButton.IsEnabled)
                 {
-                    PublishChangesButton.IsEnabled = false;
+                    CommitChangesButton.IsEnabled = false;
                 }
             }
-            else if (ChangesTextBox.Text.Length > 15 && PublishPossible)
+            else if (ChangesTextBox.Text.Length > 15 && CommitPossible)
             {
-                if (!PublishChangesButton.IsEnabled)
+                if (!CommitChangesButton.IsEnabled)
                 {
-                    PublishChangesButton.IsEnabled = true;
+                    CommitChangesButton.IsEnabled = true;
                 }
             }
             else
             {
-                if (PublishChangesButton.IsEnabled)
+                if (CommitChangesButton.IsEnabled)
                 {
-                    PublishChangesButton.IsEnabled = false;
+                    CommitChangesButton.IsEnabled = false;
                 }
             }
         }
@@ -184,9 +185,7 @@ namespace WebsiteHandler_GUI
         private void UpdateHandlerButton_Click(object sender, RoutedEventArgs e)
         {
             GITHandler tempHandler = new GITHandler(HandlerBackend.HandlerRepoLink, HandlerBackend.UHandler);
-
-            /* Check if the Handler is out-dated */
-
+            tempHandler.OpenRepoInBrowser();
         }
 
 
@@ -222,20 +221,47 @@ namespace WebsiteHandler_GUI
             }
         }
 
+
         // Commit Changes 
         private void CommitChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
-            //tempHandler.CommitLatestChanges();
-            InitializeLocalProjectCanvas();
+            if (System.Windows.MessageBox.Show("Änderungen vorbereiten? Änderungskommentar: " + ChangesTextBox.Text, "Vorbereiten der Änderungen", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+                tempHandler.CommitLatestChanges(HandlerBackend.UHandler.WorkspacePath, HandlerBackend.UHandler.UserName + ":" + ChangesTextBox.Text, out string stdout, out string stderr);
+
+                if (!String.IsNullOrWhiteSpace(stdout))
+                {
+                    AppendLineToConsole(">> OUTPUT: " + stdout);
+                }
+
+                if (!String.IsNullOrWhiteSpace(stderr))
+                {
+                    AppendLineToConsole(">> ERROR: " + stderr);
+                }
+
+                ChangesTextBox.Text = "";
+                InitializeLocalProjectCanvas();
+            }
         }
+
 
         // Remove/Unstage Changes
         private void RemoveChangesButton_Click(object sender, RoutedEventArgs e)
         {
-            GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
-            tempHandler.RemoveChanges(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+            if (System.Windows.MessageBox.Show("Änderungen verwerfen?", "Verwerfen der Änderungen", MessageBoxButton.YesNo,MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                GITHandler tempHandler = new GITHandler(HandlerBackend.WebsiteRepoLink, HandlerBackend.UHandler);
+                tempHandler.RemoveChanges(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr);
+                AppendLineToConsole("Änderungen verworfen.");
+                AppendLineToConsole(">> OUTPUT: " + stdout);
+                AppendLineToConsole(">> ERROR: " + stderr);
+
+                AppendLineToConsole("Reinitialisierung des Handlers...");
+                InitializeCanvasesContent();
+            }
         }
+
 
         // Send problem message / Open Mailing Programme
         private void SendIssueButton_Click(object sender, RoutedEventArgs e)
@@ -243,6 +269,15 @@ namespace WebsiteHandler_GUI
             System.Diagnostics.Process.Start("mailto:" + DevMail + "?subject=WebsiteHandlerProblem &body=ConsoleOutput " + 
                 ConsoleOutputTextBlock.Text.Replace("\r\n", Environment.NewLine).Replace("\n", Environment.NewLine));
         }
+
+
+        // Refresh View
+        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            ClearConsole();
+            InitializeCanvasesContent();
+        }
+
         /*********************************************************************************************/
         /* Canvas Initializers */
         /*********************************************************************************************/
@@ -262,13 +297,14 @@ namespace WebsiteHandler_GUI
             /* Update Current Project Canvas */
             InitializeLocalProjectCanvas();
 
-            /* Update HandlerCanvas */
-            InitializeUpdateHandlerCanvas();
-
             /* Publishing Canvas */
             InitializePublishCanvas();
+
+            /* Update HandlerCanvas */
+            InitializeUpdateHandlerCanvas();
         }
         
+
         private void InitializeHomeCanvas()
         {
             WebsiteHandlerGuiVersionTextBlock.Text = "GUI-Version: " + GuiVersion;
@@ -300,6 +336,7 @@ namespace WebsiteHandler_GUI
             }
 
         }
+
 
         private void InitializeToolInstallCanvas()
         {
@@ -381,9 +418,12 @@ namespace WebsiteHandler_GUI
             if(tempHandler.ChangesAvailable(HandlerBackend.UHandler.WorkspacePath, out string stdout, out string stderr))
             {
                 ChangesAvailableLabel.Content = "Ja";
+                CommitPossible = true;
             } else
             {
                 ChangesAvailableLabel.Content = "Nein";
+                CommitPossible = false;
+                CommitChangesButton.IsEnabled = false;
             }
 
         }
@@ -394,6 +434,7 @@ namespace WebsiteHandler_GUI
             VersionLabel.Content = HandlerVersion;
 
         }
+
 
         private void InitializePublishCanvas()
         {
@@ -422,6 +463,7 @@ namespace WebsiteHandler_GUI
             }
         }
 
+
         /*********************************************************************************************/
         /* Publishing */
         /*********************************************************************************************/
@@ -434,6 +476,8 @@ namespace WebsiteHandler_GUI
             AppendLineToConsole(stdout);
             AppendLineToConsole(stderr);
         }
+
+
         /*********************************************************************************************/
         /* Update Handler */
         /*********************************************************************************************/
@@ -635,7 +679,6 @@ namespace WebsiteHandler_GUI
         {
             ConsoleOutputTextBlock.Text = "";
         }
-
 
     }
 }

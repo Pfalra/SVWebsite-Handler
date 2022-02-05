@@ -5,10 +5,6 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Threading;
-using System.Security.Principal;
-using System.Security.Permissions;
-
-
 
 
 namespace WebsiteHandlerBackend

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
 namespace WebsiteHandlerBackend
@@ -20,6 +16,7 @@ namespace WebsiteHandlerBackend
         private const string GithubUname = "SGEdelweiss";
         public string RepoName = "";
 
+        private string ProjectURLAndPAT { get; set; } = "";
         private string ProjectURL { get; set; } = "";
         private Decryptor GitCredDecryptor { get; set; } = null;
 
@@ -28,13 +25,13 @@ namespace WebsiteHandlerBackend
         /*********************************************************************************************/
         public GITHandler(string projectURL, Decryptor decryptor = null)
         {
-            ProjectURL = projectURL;
+            ProjectURLAndPAT = projectURL;
             GitCredDecryptor = decryptor;
 
             if (GitCredDecryptor != null)
             {
                 GitCredDecryptor.DecryptContent();
-                InsertCredsInUrl(ProjectURL, GitCredDecryptor);
+                InsertCredsInUrl(ProjectURLAndPAT, GitCredDecryptor);
             }
         }
 
@@ -42,13 +39,14 @@ namespace WebsiteHandlerBackend
         public GITHandler(string projectURL, UserHandler userHandler)
         { 
             ProjectURL = projectURL;
+            ProjectURLAndPAT = projectURL;
 
             if (!projectURL.Contains(".git") || !projectURL.Contains('/'))
             {
                 /* repos file is broken */
                 // TODO: Find a proper way to handle such thing
 
-                ProjectURL = "REPOS FILE BROKEN";
+                ProjectURLAndPAT = "REPOS FILE BROKEN";
             }
             else
             {
@@ -57,7 +55,7 @@ namespace WebsiteHandlerBackend
                 int end = RepoName.LastIndexOf(".git");
                 int len = RepoName.Length;
                 RepoName = RepoName.Substring(start, end-start);
-                ProjectURL = InsertPatInUrl(ProjectURL, userHandler.UserAccessKey);
+                ProjectURLAndPAT = InsertPatInUrl(ProjectURLAndPAT, userHandler.UserAccessKey);
             }
 
         }
@@ -81,7 +79,7 @@ namespace WebsiteHandlerBackend
 
         public void CloneProject(string destDir, out string stdOutput, out string stdError)
         {
-            string argStr = "/c \"cd /d \"" + destDir + "\" && git clone " + ProjectURL + "\"";
+            string argStr = "/c \"cd /d \"" + destDir + "\" && git clone " + ProjectURLAndPAT + "\"";
             StartGitProcess(argStr, out stdOutput, out stdError);
         }
 
@@ -95,7 +93,7 @@ namespace WebsiteHandlerBackend
 
         public void RemoveChanges(string workspaceDir, out string stdOutput, out string stdError)
         {
-            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git reset --hard \"";
+            string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git clean -f\"";
             StartGitProcess(argStr, out stdOutput, out stdError);
         }
         
@@ -104,7 +102,8 @@ namespace WebsiteHandlerBackend
         {
             string argStr = "/c \" cd /d \"" + workspaceDir + "\\" + RepoName + "\" && git status --short \"";
             StartGitProcess(argStr, out stdOutput, out stdError);
-            if (stdOutput.Count(f => f.CompareTo(Environment.NewLine) == 0) > 1)
+            string[] outArr = stdOutput.Split('\n');
+            if (outArr.Length >= 1 && outArr[0].Length > 1)
             {
                 return true;
             }
@@ -247,8 +246,8 @@ namespace WebsiteHandlerBackend
             } 
             else
             {
-                string protocolStr = ProjectURL.Substring(0, ProjectURL.IndexOf("//")-1);
-                string siteStr = ProjectURL.Substring(ProjectURL.IndexOf("//"));
+                string protocolStr = ProjectURLAndPAT.Substring(0, ProjectURLAndPAT.IndexOf("//")-1);
+                string siteStr = ProjectURLAndPAT.Substring(ProjectURLAndPAT.IndexOf("//"));
                 string credStr = dec.DecryptedContent.Replace(dec.Separator, ':');
 
                 return String.Format("{0}//{1}@{2}", protocolStr, credStr, siteStr);
@@ -323,6 +322,14 @@ namespace WebsiteHandlerBackend
             }
 
         }
-    
+
+
+        /*********************************************************************************************/
+        /* Browser things */
+        /*********************************************************************************************/
+        public void OpenRepoInBrowser()
+        {
+            Process.Start(ProjectURL);
+        }
     }
 }
