@@ -12,13 +12,12 @@ namespace WebsiteHandlerBackend
         private string handlerKey = "HANDLER";
         private string websiteKey = "WEBSITE";
 
-        public string Version { get; } = "1.0.0";
+        public string Version { get; } = "1.0.1";
         public string DefaultServerCredsPath { get; } = ".\\sc.enc";
         public string DefaultGitCredsPath { get; } = ".\\gc.enc";
         public string DefaultEncryptorFile { get; } = ".\\Encryptor.exe";
         public string WebsiteRepoLink { get; set; } = "";
         public string HandlerRepoLink { get; set; } = "";
-
         public string ServerName { get; set; } = "";
 
         /*********************************************************************************************/
@@ -28,7 +27,6 @@ namespace WebsiteHandlerBackend
         public InstallationChecker InstChecker { get; }
         public ToolInstaller Installer { get; }
 
-        public FTPHandler FtpHandler { get; }
         public GITHandler GitHandler { get; }
 
         /*********************************************************************************************/
@@ -71,15 +69,8 @@ namespace WebsiteHandlerBackend
                 }
 
             }
-
-
-            /* Read in configuration */
-            //ServerName = UHandler.GetFromConfig("SERVER-NAME");
-
-            //FtpHandler = new FTPHandler(Connector, ServerName, Decrypt);
             
             Logger = new HandlerLogger();
-
 
             ReadRepositoryLinks();
         }
